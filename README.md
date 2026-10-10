@@ -4,7 +4,7 @@
 
 ## 起動
 
-`npm install` の後、`npm run dev` を実行し、http://localhost:3000 を開きます。Supabase未設定でも画面を確認できます。認証ボタンは無効になります。
+`npm install` の後、`npm run dev` を実行し、http://localhost:3000 を開きます。Supabase未設定でも画面を確認できます。認証ボタンは無効になります。現在の確認用サーバーは `npm run dev -- --port 3001` で起動しているため、その場合はアクセスURLとSupabaseのSite URLを `http://localhost:3001` にしてください。
 
 ## Supabaseの設定
 
@@ -30,3 +30,4 @@
 未ログインの `/account` は `/login` に移動します。
 
 認証はSupabaseのCookieによるSSR構成を使用し、保護ページでJWTの検証済みclaimsを確認します。今後、本棚データを追加する際はRLSによるアクセス制御も実装します。
+
