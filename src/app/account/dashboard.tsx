@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 const sections = [
   { title: "本棚をひらく", subtitle: "読む楽しみを、身近な人と。", items: [
@@ -36,12 +37,16 @@ function Icon({ type }: { type: string }) {
 export default function Dashboard() {
   const [selected, setSelected] = useState<string | null>(null);
   return <>
-    <div className="dashboard-development"><span className="development-dot" />ただいま準備中です。各ボタンから、追加予定の機能を確認できます。</div>
+    <div className="dashboard-development"><span className="development-dot" />自分の本棚をひらけます。ほかの機能は順次追加予定です。</div>
     {selected && <div className="dashboard-feedback" role="status"><div><strong>{selected}</strong><p>この機能はこれから追加予定です。もう少しお待ちください。</p></div><button onClick={() => setSelected(null)} aria-label="案内を閉じる">×</button></div>}
     {sections.map((section, index) => <section className="dashboard-section" key={section.title} aria-labelledby={`section-${index}`}>
       <div className="dashboard-section-heading"><h2 id={`section-${index}`}>{section.title}</h2><p>{section.subtitle}</p></div>
       <div className={`dashboard-grid ${index === 0 ? "bookshelf-grid" : ""}`}>
-        {section.items.map((item) => <button key={item.title} className={`feature-button feature-${item.color}`} onClick={() => setSelected(item.title)}>
+        {section.items.map((item) => item.title === "自分の本棚" ? <Link key={item.title} href="/account/bookshelf" className={`feature-button feature-${item.color}`}>
+          <span className="feature-icon"><Icon type={item.icon} /></span>
+          <span className="feature-copy"><strong>{item.title}</strong><span>{item.description}</span></span>
+          <span className="feature-arrow" aria-hidden="true">↗</span>
+        </Link> : <button key={item.title} className={`feature-button feature-${item.color}`} onClick={() => setSelected(item.title)}>
           <span className="feature-icon"><Icon type={item.icon} /></span>
           <span className="feature-copy"><strong>{item.title}</strong><span>{item.description}</span></span>
           <span className="feature-arrow" aria-hidden="true">↗</span>
