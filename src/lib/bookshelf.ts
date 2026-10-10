@@ -3,6 +3,10 @@ export type ComicCopy = {
   volume_number: number;
   isbn: string | null;
   cover_url: string | null;
+  book_title?: string | null;
+  publisher?: string | null;
+  published_date?: string | null;
+  metadata_source?: string | null;
 };
 export type ComicSeries = {
   id: string;

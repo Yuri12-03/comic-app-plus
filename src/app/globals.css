@@ -295,6 +295,34 @@ footer {
 .dashboard-feedback p { font-size: 13px; line-height: 1.8; margin: 6px 0 0; }
 .dashboard-feedback button { border: 0; background: transparent; cursor: pointer; font-size: 24px; color: var(--green); align-self: flex-start; min-width: 32px; min-height: 32px; }
 .personal-shelf { padding: 36px 0 24px; }
+.add-comic-link { margin: 12px 0; font-size: 13px; }
+.registration-shell { max-width: 740px; margin: auto; }
+.registration-shell h1 { font-size: clamp(26px, 4vw, 34px); }
+.registration-isbn, .registration-confirmation { background: #fffefb; padding: 28px; border: 1px solid var(--line); border-radius: 16px; margin-top: 28px; }
+.registration-step { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+.registration-step > span { background: #e8eee1; color: var(--green); border-radius: 50%; width: 32px; height: 32px; display: grid; place-items: center; font-size: 12px; flex-shrink: 0; }
+.registration-step h2 { margin: 0; font-size: 18px; }
+.scanner-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.photo-button { position: relative; display: inline-flex; align-items: center; justify-content: center; min-height: 50px; border: 1px solid #b8c3bb; border-radius: 10px; padding: 12px 18px; font-size: 14px; color: var(--green); cursor: pointer; overflow: hidden; font-weight: 700; }
+.photo-button input { position: absolute; inset: 0; opacity: 0; width: 100%; cursor: pointer; }
+.photo-button:focus-within { outline: 3px solid #d38a42; outline-offset: 4px; }
+.is-disabled { opacity: .5; cursor: not-allowed; }
+.camera-preview { position: relative; margin-top: 18px; background: #273c35; border-radius: 10px; overflow: hidden; }
+.camera-preview video { width: 100%; max-height: 350px; display: block; object-fit: cover; }
+.scan-guide { position: absolute; inset: 28% 10%; border: 2px solid #f4e3aa; border-radius: 10px; pointer-events: none; }
+.isbn-search { display: flex; gap: 12px; align-items: flex-end; margin-top: 24px; }
+.isbn-search .field { flex: 1; min-width: 0; }
+.isbn-search .button { white-space: nowrap; font-size: 13px; }
+.registration-book-summary { display: grid; grid-template-columns: 100px 1fr; gap: 20px; align-items: center; }
+.registration-book-summary h3 { font-size: 18px; line-height: 1.6; margin: 12px 0; }
+.registration-book-summary p { font-size: 12px; color: var(--muted); line-height: 1.8; }
+.registration-fields { padding: 0; border: 0; margin: 0; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.registration-two-fields { display: grid; grid-template-columns: 100px 1fr; gap: 16px; }
+.field select, .field textarea { width: 100%; min-height: 48px; padding: 12px; border: 1px solid #b8c3bb; border-radius: 8px; font: inherit; font-weight: 400; background: white; color: var(--ink); }
+.field textarea { resize: vertical; line-height: 1.8; }
+.duplicate-confirm { font-size: 14px; line-height: 1.8; display: flex; gap: 10px; align-items: center; }
+.duplicate-confirm input { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--green); }
+select:focus-visible, textarea:focus-visible { outline: 3px solid #d38a42; outline-offset: 4px; }
 .shelf-title { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .shelf-title h1 { font-size: 32px; margin: 8px 0; }
 .shelf-title > span { font-size: 13px; color: var(--muted); white-space: nowrap; }
@@ -335,6 +363,13 @@ footer {
 .owned-volume p { font-size: 11px; color: var(--muted); margin: 6px 0 0; overflow-wrap: anywhere; }
 @media (max-width: 900px) { .bookshelf-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .comic-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 700px) {
+  .registration-isbn, .registration-confirmation { padding: 20px 16px; }
+  .registration-step h2 { font-size: 16px; }
+  .scanner-actions { flex-direction: column; }
+  .isbn-search { flex-direction: column; align-items: stretch; }
+  .registration-book-summary { grid-template-columns: 80px 1fr; gap: 14px; }
+  .registration-book-summary h3 { font-size: 16px; }
+  .registration-book-summary .comic-owned { overflow-wrap: anywhere; }
   .personal-shelf { padding-top: 24px; }
   .shelf-title h1 { font-size: 26px; }
   .shelf-title > span { font-size: 11px; }
