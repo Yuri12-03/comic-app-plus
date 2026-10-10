@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getConfig } from "@/lib/supabase/config";
 import { AuthForm } from "./auth-form";
 export async function AuthPage({ mode }: { mode: "login" | "signup" }) {
+  await connection();
   const client = await createClient();
   if (client) {
     const { data } = await client.auth.getClaims();

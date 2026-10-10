@@ -1,33 +1,28 @@
 # まんがのわ
 
-今回の範囲はトップページ、新規登録、メール確認、ログイン、ログアウト、ログイン後の案内ページです。本棚・友達・貸出は次の段階で実装します。
+スマホ優先の漫画管理アプリ。現在はトップページ、メール・パスワードによる新規登録、自動ログイン、ログアウトを実装しています。本棚・友達・貸出は今後追加します。
 
-## 起動
+## 起動・接続
 
-`npm install` の後、`npm run dev` を実行し、http://localhost:3000 を開きます。Supabase未設定でも画面を確認できます。認証ボタンは無効になります。現在の確認用サーバーは `npm run dev -- --port 3001` で起動しているため、その場合はアクセスURLとSupabaseのSite URLを `http://localhost:3001` にしてください。
+`npm install` の後、`npm run dev -- --port 3001` を実行し、http://localhost:3001 を開きます。
+`.env.example` を `.env.local` にコピーし、SupabaseのProject URLとPublishable keyを設定します。接続設定はGitHubに含めません。
+Vercelでは同じ環境変数を設定し、変更後に再デプロイしてください。
 
-## Supabaseの設定
+## 認証設定
 
-1. https://supabase.com/dashboard でプロジェクトを作成します。
-2. Connect画面からProject URLとPublishable keyを取得します。
-3. `.env.example` を `.env.local` にコピーし、2項目を設定します。Secret keyやservice_roleキーは使用しません。
-4. AuthenticationでEmailログインとConfirm emailを有効にし、パスワード最小文字数を8以上に設定します。
-5. Authentication → URL ConfigurationのSite URLを `http://localhost:3000` にします。本番公開時は実際のHTTPS URLへ変更します。
-6. Authentication → Email Templates → Confirm signupで確認リンクを下記に設定します。
+SupabaseのAuthentication → Sign In / ProvidersでEmailを有効、Allow new users to sign upをオン、Confirm emailをオフにします。
+登録すると確認メールを介さずログインします。入力したメールアドレスの所有確認は行いません。
+SMTPと確認メールテンプレートの設定はこのフローには不要です。
 
-```html
-<a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup"
-  >メールアドレスを確認する</a
->
-```
+## ユーザーの保存先
 
-7. 開発サーバーを再起動します。
+Supabaseの `auth.users` にユーザーID・メールアドレス・ハッシュ化されたパスワード等を保存します。Authentication → Usersで確認できます。
+`public.profiles`等のプロフィールテーブルはまだ作成していません。
 
-## 確認
+## 検証
 
-`npm run lint` と `npm run build` で静的検証します。
-実認証はSupabase設定後に、新規登録 → メール確認 → アカウント画面 → ログアウト → 再ログインの順に確認してください。誤ったパスワード、確認パスワード不一致、メール確認前のログインも確認します。
+`npm run lint` と `npm run build` で検証します。
+新規登録 → 自動ログイン → 再読み込み → ログアウト → 再ログインと、Supabaseのユーザー一覧への反映を確認します。
 未ログインの `/account` は `/login` に移動します。
 
-認証はSupabaseのCookieによるSSR構成を使用し、保護ページでJWTの検証済みclaimsを確認します。今後、本棚データを追加する際はRLSによるアクセス制御も実装します。
-
+Cookieによる認証と検証済みのJWT claimsを使用します。本棚データの追加時はRLSを設定します。

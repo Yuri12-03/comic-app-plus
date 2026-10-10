@@ -23,6 +23,7 @@ export async function authenticate(
         ? await client.auth.signUp({ email, password })
         : await client.auth.signInWithPassword({ email, password });
     if (result.error) {
+      console.error("Authentication request failed", { code: result.error.code, status: result.error.status });
       if (result.error.code === "email_not_confirmed")
         return {
           error: "確認メールのリンクを開いてからログインしてください。",

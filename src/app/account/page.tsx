@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/auth/actions";
@@ -7,6 +8,7 @@ export default async function Account({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
+  await connection();
   const client = await createClient();
   if (!client) redirect("/login");
   const { data, error } = await client.auth.getClaims();
