@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/auth/actions";
+import Dashboard from "./dashboard";
 export default async function Account({
   searchParams,
 }: {
@@ -16,32 +17,27 @@ export default async function Account({
   const params = await searchParams;
   return (
     <div className="site">
-      <header>
-        <Link className="brand" href="/">
+      <header className="dashboard-header">
+        <Link className="brand" href="/account">
           ▥ まんがのわ
         </Link>
+        <form action={signOut}><button className="logout-button">ログアウト</button></form>
       </header>
-      <main className="auth-shell">
-        <div className="card">
-          <p className="eyebrow">MY ACCOUNT</p>
-          <h1>ログインしました</h1>
-          <p className="intro email">{String(data.claims.email ?? "")}</p>
-          <div className="empty">
-            <h2>あなたの本棚は、ここから。</h2>
-            <p className="intro">
-              アカウントの準備ができました。本棚の作成・漫画の登録機能は、これから追加していきます。
-            </p>
+      <main className="dashboard-shell">
+          <div className="dashboard-welcome">
+            <p className="eyebrow">MY BOOKSHELF / HOME</p>
+            <h1>本棚から、ひろがる毎日。</h1>
+            <p className="intro">お気に入りの漫画も、身近な人との貸し借りも。<br />ここから、あなたの本棚をはじめましょう。</p>
+            <p className="account-email email">{String(data.claims.email ?? "")}</p>
           </div>
           {params.error && (
             <p className="notice error" role="alert">
               ログアウトできませんでした。もう一度お試しください。
             </p>
           )}
-          <form action={signOut}>
-            <button className="button">ログアウト</button>
-          </form>
-        </div>
+          <Dashboard />
       </main>
+      <footer>まんがのわ — 本棚から広がる、漫画のつながり。</footer>
     </div>
   );
 }
