@@ -1,4 +1,4 @@
 import { AuthPage } from "@/components/auth-page";
-export default function Login() {
-  return <AuthPage mode="login" />;
+export default async function Login({searchParams}:{searchParams:Promise<{next?:string}>}) {
+  return <AuthPage mode="login" next={(await searchParams).next} />;
 }

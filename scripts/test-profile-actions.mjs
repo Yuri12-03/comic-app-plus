@@ -21,6 +21,7 @@ vm.runInNewContext(compile("src/app/account/settings/profile/actions.ts"), { exp
   if (name === "next/navigation") return { redirect: path => { throw new Error(`REDIRECT:${path}`); } };
   if (name === "@/lib/profile-server") return { loadUserProfile: async () => context };
   if (name === "@/lib/profile") return profile;
+  if (name === "@/lib/friends") return { friendReturnPath: () => null };
   throw new Error(name);
 } });
 function form(kind = "preset") {

@@ -5,9 +5,11 @@ import { authenticate } from "@/app/auth/actions";
 export function AuthForm({
   mode,
   configured,
+  next,
 }: {
   mode: "login" | "signup";
   configured: boolean;
+  next?: string;
 }) {
   const signup = mode === "signup";
   const [state, action, pending] = useActionState(
@@ -17,6 +19,7 @@ export function AuthForm({
   return (
     <>
       <form action={action} className="auth-form">
+        {next && <input type="hidden" name="next" value={next} />}
         {!configured && (
           <p className="notice">
             アカウント機能は準備中です。接続設定が完了すると登録・ログインできます。
@@ -77,7 +80,7 @@ export function AuthForm({
           ? "すでにアカウントをお持ちですか？"
           : "まだアカウントをお持ちでない方"}
         <br />
-        <Link href={signup ? "/login" : "/signup"}>
+        <Link href={`${signup ? "/login" : "/signup"}${next ? `?next=${encodeURIComponent(next)}` : ""}`}>
           {signup ? "ログインする →" : "新規登録する →"}
         </Link>
       </p>

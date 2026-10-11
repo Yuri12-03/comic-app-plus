@@ -4,12 +4,13 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getConfig } from "@/lib/supabase/config";
 import { AuthForm } from "./auth-form";
-export async function AuthPage({ mode }: { mode: "login" | "signup" }) {
+import { friendReturnPath } from "@/lib/friends";
+export async function AuthPage({ mode, next }: { mode: "login" | "signup"; next?: string }) {
   await connection();
   const client = await createClient();
   if (client) {
     const { data } = await client.auth.getClaims();
-    if (data?.claims) redirect("/account");
+    if (data?.claims) redirect(friendReturnPath(next ?? "") ?? "/account");
   }
   return (
     <div className="site">
@@ -28,7 +29,7 @@ export async function AuthPage({ mode }: { mode: "login" | "signup" }) {
               ? "メールアドレスでアカウントを作成します。"
               : "メールアドレスとパスワードでログイン。"}
           </p>
-          <AuthForm mode={mode} configured={!!getConfig()} />
+          <AuthForm mode={mode} configured={!!getConfig()} next={friendReturnPath(next ?? "") ?? undefined} />
         </div>
       </main>
     </div>

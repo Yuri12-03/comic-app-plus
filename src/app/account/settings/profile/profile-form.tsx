@@ -4,7 +4,7 @@ import UserAvatar from "@/components/user-avatar";
 import { avatarPresets, type AvatarPreset, type UserProfile } from "@/lib/profile";
 import { saveProfile } from "./actions";
 
-export default function ProfileForm({ profile, photoUrl, onboarding = false }: { profile: UserProfile | null; photoUrl: string | null; onboarding?: boolean }) {
+export default function ProfileForm({ profile, photoUrl, onboarding = false, next }: { profile: UserProfile | null; photoUrl: string | null; onboarding?: boolean; next?: string }) {
   const [name, setName] = useState(profile?.display_name ?? "");
   const [kind, setKind] = useState(profile?.avatar_kind ?? "preset");
   const [preset, setPreset] = useState<AvatarPreset>(profile?.avatar_preset ?? "cat");
@@ -43,6 +43,7 @@ export default function ProfileForm({ profile, photoUrl, onboarding = false }: {
     if (kind === "photo" && photo) form.set("photo", photo);
     startTransition(() => action(form));
   }}>
+    {next && <input type="hidden" name="next" value={next} />}
     <div className="profile-preview"><UserAvatar large name={name || "あなた"} preset={preset} photoUrl={kind === "photo" ? preview || photoUrl : null} /><strong>{name || "あなたのユーザーネーム"}</strong></div>
     <fieldset className="registration-fields" disabled={pending || preparing}>
       <label className="field">ユーザーネーム<input name="displayName" value={name} onChange={event => setName(event.target.value)} maxLength={60} required autoComplete="nickname" placeholder="例：まんが好きのねこ" /></label>

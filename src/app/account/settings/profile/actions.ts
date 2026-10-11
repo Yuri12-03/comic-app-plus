@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { loadUserProfile } from "@/lib/profile-server";
 import { imageContentType, isAvatarPreset, validDisplayName } from "@/lib/profile";
+import { friendReturnPath } from "@/lib/friends";
 export type ProfileState = { error?: string };
 export async function saveProfile(onboarding: boolean, _previous: ProfileState, form: FormData): Promise<ProfileState> {
   const { client, user, profile, failed } = await loadUserProfile();
@@ -35,5 +36,5 @@ export async function saveProfile(onboarding: boolean, _previous: ProfileState, 
   if (profile?.avatar_path && profile.avatar_path !== path) await client.storage.from("profile-photos").remove([profile.avatar_path]);
   revalidatePath("/account");
   revalidatePath("/account/settings/profile");
-  redirect(onboarding ? "/account" : "/account/settings/profile?saved=1");
+  redirect(onboarding ? friendReturnPath(String(form.get("next") ?? "")) ?? "/account" : "/account/settings/profile?saved=1");
 }

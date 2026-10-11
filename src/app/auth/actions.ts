@@ -1,6 +1,7 @@
 "use server";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { friendReturnPath } from "@/lib/friends";
 export type AuthState = { error?: string; success?: string };
 export async function authenticate(
   mode: "login" | "signup",
@@ -47,7 +48,8 @@ export async function authenticate(
       error: "接続できませんでした。時間をおいてもう一度お試しください。",
     };
   }
-  redirect(mode === "signup" ? "/account/onboarding" : "/account");
+  const next = friendReturnPath(String(form.get("next") ?? ""));
+  redirect(mode === "signup" ? `/account/onboarding${next ? `?next=${encodeURIComponent(next)}` : ""}` : next ?? "/account");
 }
 export async function signOut() {
   const client = await createClient();
