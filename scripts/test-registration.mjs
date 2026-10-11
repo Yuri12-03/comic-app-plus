@@ -3,6 +3,7 @@ import fs from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
 import zxing from "@zxing/library";
+import { XMLParser } from "fast-xml-parser";
 
 function load(path, imports = {}, extra = {}) {
   const exports = {};
@@ -23,6 +24,18 @@ assert.equal(isbn.inferVolume("One piece 巻2 (Versus!!バギー海賊団)").tit
 assert.equal(isbn.inferVolume("ONE PIECE （１０）").volume, 10);
 assert.equal(isbn.inferVolume("20世紀少年").volume, null);
 assert.equal(isbn.inferVolume("作品", "3").volume, 3);
+assert.equal(isbn.inferVolume("作品", "巻十二").volume, 12);
+assert.equal(isbn.inferVolume("作品", "巻2 (副題)").volume, 2);
+assert.equal(isbn.inferVolume("作品 第百二十三巻").volume, 123);
+assert.equal(isbn.inferVolume("作品", "1-6").volume, null);
+assert.equal(isbn.inferVolume("作品 Vol. 10").volume, 10);
+const search = load("src/lib/series-search.ts", { "./isbn": isbn, "fast-xml-parser": { XMLParser } });
+const record = (title, volume, id, datatype = "ISBN") => `<record><recordData><rdf:RDF><dcndl:BibResource><dc:title><rdf:Description><rdf:value>${title}</rdf:value></rdf:Description></dc:title><dcndl:volume><rdf:Description><rdf:value>${volume}</rdf:value></rdf:Description></dcndl:volume><dcterms:identifier rdf:datatype="http://ndl.go.jp/dcndl/terms/${datatype}">${id}</dcterms:identifier></dcndl:BibResource></rdf:RDF></recordData></record>`;
+const fixture = `<searchRetrieveResponse><records>${record("ONE PIECE", "巻一", "4-08-872509-3")}${record("ONE PIECE", "巻2 (副題)", "9784088725444")}${record("ONE PIECE", "巻3", "9784088725697", "SetISBN")}${record("ONE PIECE 関連本", "巻3", "9784088725697")}${record("ONE PIECE", "巻2", "9784088725444")}</records></searchRetrieveResponse>`;
+const parsed = search.parseSeriesRecords(fixture, "One piece", 1, 2);
+assert.equal(parsed.length, 2);
+assert.equal(parsed[0].isbn, "9784088725093");
+assert.equal(parsed[1].volume, 2);
 assert.equal(isbn.safeCoverUrl("javascript:alert(1)"), "");
 assert.equal(isbn.safeCoverUrl("https://user:password@example.com/a.jpg"), "");
 

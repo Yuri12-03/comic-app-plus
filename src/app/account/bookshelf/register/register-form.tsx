@@ -5,6 +5,7 @@ import ComicCover from "@/components/comic-cover";
 import IsbnScanner from "@/components/isbn-scanner";
 import { normalizeIsbn, type BookMetadata } from "@/lib/isbn";
 import { lookupIsbn, registerComic } from "./actions";
+import RangeForm from "./range-form";
 
 type SeriesOption = { id: string; title: string; author: string | null };
 
@@ -40,6 +41,7 @@ function BookConfirmation({ book, series }: { book: BookMetadata; series: Series
 }
 
 export default function RegisterForm({ series }: { series: SeriesOption[] }) {
+  const [mode, setMode] = useState("single");
   const [isbn, setIsbn] = useState("");
   const [book, setBook] = useState<BookMetadata | null>(null);
   const [message, setMessage] = useState("");
@@ -62,6 +64,6 @@ export default function RegisterForm({ series }: { series: SeriesOption[] }) {
       <form className="isbn-search" onSubmit={(event) => { event.preventDefault(); void lookup(isbn); }}><label className="field">ISBNを手入力<input value={isbn} disabled={busy} onChange={(event) => { setIsbn(event.target.value); setBook(null); setMessage(""); }} placeholder="例：9784088725093" maxLength={24} autoComplete="off" /></label><button className="button" disabled={busy || !isbn.trim()}>{busy ? "情報を取得中…" : "書誌情報を取得"}</button></form>
       <p className="help">10桁・13桁、ハイフン付きのISBNも使えます。</p>{message && <p className="notice" role="status">{message}</p>}
     </section>
-    {book && <BookConfirmation key={book.isbn} book={book} series={series} />}
+    {book && <><div className="registration-mode" role="group" aria-label="登録方法"><button className={`button ${mode === "single" ? "" : "secondary"}`} onClick={() => setMode("single")}>1冊だけ追加</button><button className={`button ${mode === "range" ? "" : "secondary"}`} onClick={() => setMode("range")}>巻数の範囲で追加</button></div>{mode === "single" ? <BookConfirmation key={book.isbn} book={book} series={series} /> : <RangeForm key={book.isbn} book={book} series={series} />}</>}
   </>;
 }

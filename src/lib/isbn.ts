@@ -13,11 +13,19 @@ export function normalizeIsbn(input: string): string | null {
 }
 
 export function inferVolume(title: string, explicitVolume?: string): { title: string; volume: number | null } {
-  const normalized = title.normalize("NFKC").trim();
-  const explicit = explicitVolume?.normalize("NFKC").match(/^(?:第|巻)?\s*(\d+)\s*(?:巻)?$/);
-  const marked = normalized.match(/^(.*?)\s*(?:第\s*(\d+)\s*巻|巻\s*(\d+)|(\d+)\s*巻)(?:\s|[（(]|$)/);
+  const japaneseNumber = (value: string) => {
+    const digits: Record<string, number> = { "〇": 0, "零": 0, "一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7, "八": 8, "九": 9 };
+    if (!/[十百千]/.test(value)) return String(Number([...value].map(char => digits[char]).join("")));
+    let total = 0, digit = 0;
+    for (const char of value) { const unit = ({ "十": 10, "百": 100, "千": 1000 } as Record<string, number>)[char]; if (unit) { total += (digit || 1) * unit; digit = 0; } else digit = digits[char]; }
+    return String(total + digit);
+  };
+  const numeral = /[〇零一二三四五六七八九十百千]+/g;
+  const normalized = title.normalize("NFKC").trim().replace(/(?:第[〇零一二三四五六七八九十百千]+巻|巻[〇零一二三四五六七八九十百千]+)/g, value => value.replace(numeral, japaneseNumber));
+  const explicit = explicitVolume?.normalize("NFKC").replace(numeral, japaneseNumber).match(/^(?:第|巻)?\s*(\d+)\s*(?:巻)?(?:\s*\([^)]*\))?$/);
+  const marked = normalized.match(/^(.*?)\s*(?:第\s*(\d+)\s*巻|巻\s*(\d+)|(\d+)\s*巻|(?:vol\.?|volume)\s*(\d+))(?:\s|[（(]|$)/i);
   if (marked?.[1].trim()) {
-    const volume = explicit ? Number(explicit[1]) : Number(marked[2] ?? marked[3] ?? marked[4]);
+    const volume = explicit ? Number(explicit[1]) : Number(marked[2] ?? marked[3] ?? marked[4] ?? marked[5]);
     return { title: marked[1].trim(), volume: volume > 0 && volume <= 9999 ? volume : null };
   }
   const match = normalized.match(/(?:\s+|[（(])(?:第|巻)?\s*(\d+)\s*(?:巻)?[）)]?$/)
