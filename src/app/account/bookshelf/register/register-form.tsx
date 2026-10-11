@@ -6,6 +6,7 @@ import IsbnScanner from "@/components/isbn-scanner";
 import { normalizeIsbn, type BookMetadata } from "@/lib/isbn";
 import { lookupIsbn, registerComic } from "./actions";
 import RangeForm from "./range-form";
+import TitleSearchForm from "./title-search-form";
 
 type SeriesOption = { id: string; title: string; author: string | null };
 
@@ -41,6 +42,7 @@ function BookConfirmation({ book, series }: { book: BookMetadata; series: Series
 }
 
 export default function RegisterForm({ series }: { series: SeriesOption[] }) {
+  const [searchMode, setSearchMode] = useState("isbn");
   const [mode, setMode] = useState("single");
   const [isbn, setIsbn] = useState("");
   const [book, setBook] = useState<BookMetadata | null>(null);
@@ -60,10 +62,11 @@ export default function RegisterForm({ series }: { series: SeriesOption[] }) {
     finally { if (current === requestId.current) setBusy(false); }
   }
   return <>
-    <section className="registration-isbn" aria-labelledby="isbn-heading"><div className="registration-step"><span>01</span><h2 id="isbn-heading">ISBNを読み取る</h2></div><IsbnScanner disabled={busy} onRead={(value) => void lookup(value)} />
+    <div className="registration-mode" role="group" aria-label="漫画の探し方"><button type="button" className={`button ${searchMode === "isbn" ? "" : "secondary"}`} aria-pressed={searchMode === "isbn"} onClick={() => { ++requestId.current; setBusy(false); setSearchMode("isbn"); setBook(null); setMessage(""); }}>ISBNで登録</button><button type="button" className={`button ${searchMode === "title" ? "" : "secondary"}`} aria-pressed={searchMode === "title"} onClick={() => { ++requestId.current; setBusy(false); setSearchMode("title"); setBook(null); setMessage(""); }}>漫画名で検索</button></div>
+    {searchMode === "title" ? <TitleSearchForm onSearch={() => setBook(null)} onSelect={selected => { setBook(selected); setMode("range"); }}/>: <section className="registration-isbn" aria-labelledby="isbn-heading"><div className="registration-step"><span>01</span><h2 id="isbn-heading">ISBNを読み取る</h2></div><IsbnScanner disabled={busy} onRead={(value) => void lookup(value)} />
       <form className="isbn-search" onSubmit={(event) => { event.preventDefault(); void lookup(isbn); }}><label className="field">ISBNを手入力<input value={isbn} disabled={busy} onChange={(event) => { setIsbn(event.target.value); setBook(null); setMessage(""); }} placeholder="例：9784088725093" maxLength={24} autoComplete="off" /></label><button className="button" disabled={busy || !isbn.trim()}>{busy ? "情報を取得中…" : "書誌情報を取得"}</button></form>
       <p className="help">10桁・13桁、ハイフン付きのISBNも使えます。</p>{message && <p className="notice" role="status">{message}</p>}
-    </section>
-    {book && <><div className="registration-mode" role="group" aria-label="登録方法"><button className={`button ${mode === "single" ? "" : "secondary"}`} onClick={() => setMode("single")}>1冊だけ追加</button><button className={`button ${mode === "range" ? "" : "secondary"}`} onClick={() => setMode("range")}>巻数の範囲で追加</button></div>{mode === "single" ? <BookConfirmation key={book.isbn} book={book} series={series} /> : <RangeForm key={book.isbn} book={book} series={series} />}</>}
+    </section>}
+    {book && <><div className="registration-mode" role="group" aria-label="登録方法"><button className={`button ${mode === "single" ? "" : "secondary"}`} onClick={() => setMode("single")}>1冊だけ追加</button><button className={`button ${mode === "range" ? "" : "secondary"}`} onClick={() => setMode("range")}>巻数の範囲で追加</button></div>{mode === "single" ? <BookConfirmation key={book.isbn} book={book} series={series} /> : <RangeForm key={book.isbn} book={book} series={series} fromTitle={searchMode === "title"} />}</>}
   </>;
 }

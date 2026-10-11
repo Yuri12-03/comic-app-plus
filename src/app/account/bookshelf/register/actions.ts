@@ -6,6 +6,17 @@ import { loadBookshelf, requireBookshelfUser } from "@/lib/bookshelf-server";
 import { fetchBookMetadata } from "@/lib/book-metadata";
 import { inferVolume, normalizeIsbn, safeCoverUrl, type BookMetadata } from "@/lib/isbn";
 import { searchSeries } from "@/lib/series-search";
+import { searchBooksByTitle, findTitleBook } from "@/lib/title-search";
+
+export async function lookupTitle(input: string): Promise<{ books?: BookMetadata[]; error?: string }> {
+  await requireBookshelfUser();
+  const query = input.normalize("NFKC").trim();
+  if (query.length < 2 || query.length > 100) return { error: "漫画名を2〜100文字で入力してください。" };
+  try {
+    const books = await searchBooksByTitle(query);
+    return books.length ? { books } : { error: "候補が見つかりませんでした。別の表記や、短い漫画名で検索してください。" };
+  } catch { return { error: "検索サービスに接続できませんでした。時間をおいて再度お試しください。" }; }
+}
 
 export async function lookupOwnedSeriesRange(seriesId: string, start: number, end: number): Promise<{ books?: BookMetadata[]; error?: string }> {
   const shelf = await loadBookshelf();
@@ -23,9 +34,9 @@ export async function lookupRange(input: string, start: number, end: number): Pr
   await requireBookshelfUser();
   const isbn = normalizeIsbn(input);
   if (!isbn || !Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end > 9999 || end < start || end - start >= 50) return { error: "範囲は1〜9999巻の中から、一度に50冊まで指定してください。" };
-  const base = await fetchBookMetadata(isbn);
-  if (!base?.seriesTitle) return { error: "作品を特定できません。最初のISBNを確認してください。" };
   try {
+    const base = await fetchBookMetadata(isbn) ?? await findTitleBook(isbn);
+    if (!base?.seriesTitle) return { error: "作品を特定できません。選択した本を確認してください。" };
     const books = await searchSeries(base.seriesTitle, base.author, base.publisher, start, end);
     if (base.volume && base.volume >= start && base.volume <= end) {
       const index = books.findIndex((book) => book.isbn === base.isbn);

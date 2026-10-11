@@ -17,10 +17,10 @@ export function parseSeriesRecords(xml: string, title: string, start: number, en
       const item = object(resource);
       const rawTitle = text(object(object(item["dc:title"])["rdf:Description"])["rdf:value"]);
       const seriesTitle = inferVolume(rawTitle).title;
-      if (key(seriesTitle) !== key(title)) continue;
+      if (!seriesTitle || (title && key(seriesTitle) !== key(title))) continue;
       const rawVolume = text(object(object(item["dcndl:volume"])["rdf:Description"])["rdf:value"]);
       const volume = inferVolume(rawTitle, rawVolume).volume;
-      if (!volume || volume < start || volume > end) continue;
+      if (title ? !volume || volume < start || volume > end : volume !== null && (volume < start || volume > end)) continue;
       const publisher = text(object(object(item["dcterms:publisher"])["foaf:Agent"])["foaf:name"]);
       for (const id of array(item["dcterms:identifier"])) {
         if (!text(object(id)["@_rdf:datatype"]).endsWith("/ISBN")) continue;

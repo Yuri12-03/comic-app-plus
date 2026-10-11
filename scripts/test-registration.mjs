@@ -53,6 +53,17 @@ const parsed = search.parseSeriesRecords(fixture, "One piece", 1, 2);
 assert.equal(parsed.length, 2);
 assert.equal(parsed[0].isbn, "9784088725093");
 assert.equal(parsed[1].volume, 2);
+const titleSearch = load("src/lib/title-search.ts", { "./series-search": search });
+const titleFixture = `<searchRetrieveResponse><records>${record("ONE PIECE", "巻2", "9784088725444")}${record("ONE PIECE", "巻一", "9784088725093")}${record("別の漫画", "巻3", "9784088725697")}${record("ONE PIECE", "巻一", "9784088725093")}</records></searchRetrieveResponse>`;
+const titleResults = titleSearch.titleCandidates(titleFixture, "one piece");
+assert.equal(titleResults.length, 2, "Collapse volumes into one candidate per series");
+assert.equal(titleResults[0].seriesTitle, "ONE PIECE", "Exact title precedes partial or related titles");
+assert.equal(titleResults[0].volume, 1, "Use the smallest found volume for the candidate");
+assert.equal(titleResults[0].isbn, "9784088725093");
+const separateEditions = titleFixture.replace('<dcndl:BibResource>', '<dcndl:BibResource><dcterms:publisher><foaf:Agent><foaf:name>新装版出版社</foaf:name></foaf:Agent></dcterms:publisher>');
+assert.equal(titleSearch.titleCandidates(separateEditions, "ONE PIECE").length, 3, "Different publishers stay separate");
+assert.equal(titleSearch.titleCandidates("<searchRetrieveResponse/>", "unknown").length, 0);
+assert.equal(titleSearch.titleCandidates(`<searchRetrieveResponse><records>${record("読み切り作品", "", "9784088725093")}</records></searchRetrieveResponse>`, "読み切り作品")[0].volume, null, "Allow single-volume candidates with no volume metadata");
 assert.equal(isbn.safeCoverUrl("javascript:alert(1)"), "");
 assert.equal(isbn.safeCoverUrl("https://user:password@example.com/a.jpg"), "");
 

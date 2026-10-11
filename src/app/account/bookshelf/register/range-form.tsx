@@ -8,7 +8,7 @@ import { lookupOwnedSeriesRange, lookupRange, registerRange } from "./actions";
 
 type SeriesOption = { id: string; title: string; author: string | null };
 type Candidate = BookMetadata & { token: string };
-export default function RangeForm({ book, series, target }: { book: BookMetadata; series: SeriesOption[]; target?: SeriesOption & { nextVolume: number } }) {
+export default function RangeForm({ book, series, target, fromTitle = false }: { book: BookMetadata; series: SeriesOption[]; target?: SeriesOption & { nextVolume: number }; fromTitle?: boolean }) {
   const [start, setStart] = useState(String(target?.nextVolume ?? 1));
   const [end, setEnd] = useState(String(target?.nextVolume ?? book.volume ?? 1));
   const [multiple, setMultiple] = useState(!target);
@@ -39,7 +39,7 @@ export default function RangeForm({ book, series, target }: { book: BookMetadata
       <fieldset disabled={busy || pending} className="registration-fields">
         {target && <label className="duplicate-confirm"><input type="checkbox" checked={multiple} onChange={event => { setMultiple(event.target.checked); setEnd(start); }} />複数巻をまとめて追加</label>}
         <div className="registration-two-fields"><label className="field">{multiple ? "開始巻" : "追加する巻数"}<input type="number" min="1" max="9999" required value={start} onChange={event => setStart(event.target.value)} /></label>{multiple && <label className="field">終了巻<input type="number" min="1" max="9999" required value={end} onChange={event => setEnd(event.target.value)} /></label>}</div></fieldset>
-      <p className="help">{target ? "ISBNの読み取りは不要です。巻数からこの作品の本を探します。" : "1冊のISBNから同じ作品の各巻を探します。"}一度に50冊まで追加できます。</p>
+      <p className="help">{target || fromTitle ? "ISBNの読み取りは不要です。巻数からこの作品の本を探します。" : "1冊のISBNから同じ作品の各巻を探します。"}一度に50冊まで追加できます。</p>
       <button className="button secondary" disabled={busy || pending}>{busy ? checkingCovers ? "表紙を確認しています…" : "各巻を探しています…" : "この範囲の漫画を探す"}</button>
     </form>
     {message && <p className="notice" role="alert">{message}</p>}
