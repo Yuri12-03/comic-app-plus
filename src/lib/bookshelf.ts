@@ -13,6 +13,8 @@ export type ComicSeries = {
   title: string;
   author: string | null;
   description: string | null;
+  is_public?: boolean;
+  is_recommended?: boolean;
   comic_copies: ComicCopy[];
 };
 
