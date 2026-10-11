@@ -14,7 +14,7 @@ export function titleCandidates(xml: string, query: string): BookMetadata[] {
   return [...groups.values()].sort((a, b) => Number(key(b.seriesTitle) === key(query)) - Number(key(a.seriesTitle) === key(query)) || a.seriesTitle.localeCompare(b.seriesTitle, "ja")).slice(0, 12);
 }
 async function searchXml(query: string) {
-  const params = new URLSearchParams({ operation: "searchRetrieve", recordSchema: "dcndl", recordPacking: "xml", maximumRecords: "200", query });
+  const params = new URLSearchParams({ operation: "searchRetrieve", recordSchema: "dcndl", recordPacking: "xml", maximumRecords: "500", query });
   const response = await fetch(`https://ndlsearch.ndl.go.jp/api/sru?${params}`, { signal: AbortSignal.timeout(20000), next: { revalidate: 86400 } });
   if (!response.ok) throw new Error("SEARCH_UNAVAILABLE");
   const xml = await response.text();
@@ -24,7 +24,7 @@ async function searchXml(query: string) {
 export async function searchBooksByTitle(input: string): Promise<BookMetadata[]> {
   const query = input.normalize("NFKC").trim();
   const escaped = query.replace(/["\\]/g, " ");
-  const candidates = titleCandidates(await searchXml(`title="${escaped}"`), query);
+  const candidates = titleCandidates(await searchXml(`title="${escaped}" AND ndc="726"`), query);
   return Promise.all(candidates.map(async candidate => {
     const extra = await fetchBookMetadata(candidate.isbn);
     return { ...candidate, description: extra?.description ?? "", coverUrl: extra?.coverUrl || candidate.coverUrl, coverSource: extra?.coverSource || candidate.coverSource };
