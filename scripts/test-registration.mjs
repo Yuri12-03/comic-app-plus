@@ -12,6 +12,23 @@ function load(path, imports = {}, extra = {}) {
   return exports;
 }
 const isbn = load("src/lib/isbn.ts");
+const defaults = load("src/lib/cover-defaults.ts");
+const candidates = [
+  { volume: 1, isbn: "missing", coverUrl: "https://covers.test/missing" },
+  { volume: 1, isbn: "available", coverUrl: "https://covers.test/available" },
+  { volume: 2, isbn: "single", coverUrl: "" },
+  { volume: 3, isbn: "failed-a", coverUrl: "https://covers.test/missing" },
+  { volume: 3, isbn: "failed-b", coverUrl: "" },
+];
+const checked = [];
+const chosen = await defaults.selectCoverDefaults(candidates, 1, 4, async url => { checked.push(url); return url.endsWith("/available"); });
+assert.equal(chosen[1], "available");
+assert.equal(chosen[2], "single");
+assert.equal(chosen[3], undefined);
+assert.equal(chosen[4], undefined);
+assert.equal(checked.filter(url => url.endsWith("/missing")).length, 1);
+const stable = await defaults.selectCoverDefaults(candidates.slice(0, 2), 1, 1, async () => true);
+assert.equal(stable[1], "missing");
 assert.equal(isbn.normalizeIsbn("978-4-08-872509-3"), "9784088725093");
 assert.equal(isbn.normalizeIsbn("４０８８７２５０９３"), "9784088725093");
 assert.equal(isbn.normalizeIsbn("080442957X"), "9780804429573");

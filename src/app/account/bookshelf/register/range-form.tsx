@@ -3,6 +3,7 @@
 import { startTransition, useActionState, useState } from "react";
 import ComicCover from "@/components/comic-cover";
 import type { BookMetadata } from "@/lib/isbn";
+import { selectCoverDefaults } from "@/lib/cover-defaults";
 import { lookupRange, registerRange } from "./actions";
 
 type SeriesOption = { id: string; title: string; author: string | null };
@@ -14,6 +15,7 @@ export default function RangeForm({ book, series }: { book: BookMetadata; series
   const [selected, setSelected] = useState<Record<number, string>>({});
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [checkingCovers, setCheckingCovers] = useState(false);
   const [state, action, pending] = useActionState(registerRange, {});
   const selectedBooks = result?.books.filter(item => selected[item.volume!] === item.isbn) ?? [];
   const match = series.find(item => item.title.normalize("NFKC").replace(/\s/g, "").toLowerCase() === book.seriesTitle.normalize("NFKC").replace(/\s/g, "").toLowerCase());
@@ -26,22 +28,19 @@ export default function RangeForm({ book, series }: { book: BookMetadata; series
         const response = await lookupRange(book.isbn, Number(start), Number(end));
         if (response.error) { setMessage(response.error); return; }
         const books = (response.books ?? []).map(item => ({ ...item, token: crypto.randomUUID() }));
-        const chosen: Record<number, string> = {};
-        for (let volume = Number(start); volume <= Number(end); volume++) {
-          const candidates = books.filter(item => item.volume === volume);
-          if (candidates.length === 1) chosen[volume] = candidates[0].isbn;
-        }
+        setCheckingCovers(true);
+        const chosen = await selectCoverDefaults(books, Number(start), Number(end));
         setSelected(chosen); setResult({ start: Number(start), end: Number(end), books });
       } catch { setMessage("検索できませんでした。もう一度お試しください。"); }
-      finally { setBusy(false); }
+      finally { setBusy(false); setCheckingCovers(false); }
     }}>
       <fieldset disabled={busy || pending} className="registration-fields"><div className="registration-two-fields"><label className="field">開始巻<input type="number" min="1" max="9999" required value={start} onChange={event => setStart(event.target.value)} /></label><label className="field">終了巻<input type="number" min="1" max="9999" required value={end} onChange={event => setEnd(event.target.value)} /></label></div></fieldset>
       <p className="help">1冊のISBNから同じ作品の各巻を探します。一度に50冊まで追加できます。</p>
-      <button className="button secondary" disabled={busy || pending}>{busy ? "各巻を探しています…" : "この範囲の漫画を探す"}</button>
+      <button className="button secondary" disabled={busy || pending}>{busy ? checkingCovers ? "表紙を確認しています…" : "各巻を探しています…" : "この範囲の漫画を探す"}</button>
     </form>
     {message && <p className="notice" role="alert">{message}</p>}
     {result && <form className="auth-form range-results" onReset={event => event.preventDefault()} onSubmit={event => { event.preventDefault(); const form = new FormData(event.currentTarget); startTransition(() => action(form)); }}>
-      <h3>追加する巻を確認</h3><p className="help">通常版・新装版など、持っている本と一致するISBNを選んでください。見つからない巻や除外した巻は保存されません。</p>
+      <h3>追加する巻を確認</h3><p className="help">複数の候補がある巻は、表紙を表示できた候補を優先して選んでいます。通常版・新装版など、持っている本と一致するISBNか確認してください。見つからない巻や除外した巻は保存されません。</p>
       <fieldset disabled={pending || busy} className="registration-fields">
         {Array.from({ length: result.end - result.start + 1 }, (_, index) => result.start + index).map(volume => {
           const candidates = result.books.filter(item => item.volume === volume);
