@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { connection } from "next/server";
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { loadUserProfile } from "@/lib/profile-server";
+import UserAvatar from "@/components/user-avatar";
 import { signOut } from "@/app/auth/actions";
 import Dashboard from "./dashboard";
 export default async function Account({
@@ -9,11 +8,7 @@ export default async function Account({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
-  await connection();
-  const client = await createClient();
-  if (!client) redirect("/login");
-  const { data, error } = await client.auth.getClaims();
-  if (error || !data?.claims) redirect("/login");
+  const { user, profile, photoUrl } = await loadUserProfile(true);
   const params = await searchParams;
   return (
     <div className="site">
@@ -28,7 +23,7 @@ export default async function Account({
             <p className="eyebrow">MY BOOKSHELF / HOME</p>
             <h1>本棚から、ひろがる毎日。</h1>
             <p className="intro">お気に入りの漫画も、身近な人との貸し借りも。<br />ここから、あなたの本棚をはじめましょう。</p>
-            <p className="account-email email">{String(data.claims.email ?? "")}</p>
+            <Link className="home-profile" href="/account/settings/profile"><UserAvatar preset={profile?.avatar_preset} photoUrl={photoUrl} name={profile?.display_name} /><span><strong>{profile?.display_name ?? "ユーザー情報を設定する"}</strong><small>{user.email}</small></span></Link>
           </div>
           {params.error && (
             <p className="notice error" role="alert">

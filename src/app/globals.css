@@ -356,6 +356,31 @@ select:focus-visible, textarea:focus-visible { outline: 3px solid #d38a42; outli
 .owned-heading { display: flex; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: 16px 24px; }
 .owned-heading h2 { margin: 0; }
 .owned-heading .button { flex-shrink: 0; margin-left: auto; }
+.profile-shell { max-width: 680px; margin: 0 auto; padding: 40px 24px 72px; }
+.profile-shell h1 { font-size: clamp(26px, 5vw, 34px); line-height: 1.5; }
+.profile-card { background: #fffefb; border: 1px solid var(--line); border-radius: 20px; padding: 28px; margin-top: 28px; }
+.user-avatar { display: inline-flex; width: 56px; height: 56px; border-radius: 50%; overflow: hidden; flex-shrink: 0; align-items: center; justify-content: center; }
+.user-avatar svg { width: 88%; height: 88%; }
+.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.user-avatar.large { width: 96px; height: 96px; }
+.profile-preview { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 24px; }
+.profile-preview strong { overflow-wrap: anywhere; max-width: 100%; }
+.profile-subheading { font-size: 18px; margin: 24px 0 8px; }
+.avatar-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 18px 0; }
+.avatar-option { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 4px; border: 2px solid transparent; border-radius: 14px; cursor: pointer; font-size: 12px; }
+.avatar-option.selected { border-color: var(--green); background: #f1f4eb; }
+.avatar-option:focus-within { outline: 3px solid #d38a42; outline-offset: 2px; }
+.avatar-option input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.profile-photo-choice { border: 1px solid var(--line); padding: 16px; border-radius: 12px; }
+.profile-photo-choice.selected { border-color: var(--green); background: #f1f4eb; }
+.profile-photo-choice input[type=file] { width: 100%; padding: 10px; font-size: 13px; }
+.home-profile { display: inline-flex; align-items: center; gap: 12px; margin-top: 12px; max-width: 100%; }
+.home-profile span:last-child { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.home-profile strong, .home-profile small { overflow-wrap: anywhere; }
+.home-profile small { color: var(--muted); font-size: 12px; }
+.settings-entry { display: flex; align-items: center; justify-content: space-between; gap: 20px; background: #fffefb; padding: 24px; border: 1px solid var(--line); border-radius: 16px; margin-top: 28px; }
+.settings-entry small { display: block; color: var(--muted); line-height: 1.8; margin-top: 8px; }
+@media (max-width: 450px) { .profile-shell { padding: 28px 16px 56px; } .profile-card { padding: 20px 14px; } .avatar-options { gap: 4px; } .avatar-option .user-avatar { width: 48px; height: 48px; } }
 .owned-section h2 span { color: var(--muted); font-size: 13px; margin-left: 10px; font-weight: 400; }
 .owned-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 20px; }
 .owned-volume { background: #fffefb; border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; align-items: center; gap: 18px; }

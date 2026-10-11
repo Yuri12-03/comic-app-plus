@@ -20,7 +20,7 @@ export async function authenticate(
   try {
     const result =
       mode === "signup"
-        ? await client.auth.signUp({ email, password })
+        ? await client.auth.signUp({ email, password, options: { data: { profile_setup_required: true } } })
         : await client.auth.signInWithPassword({ email, password });
     if (result.error) {
       console.error("Authentication request failed", { code: result.error.code, status: result.error.status });
@@ -47,7 +47,7 @@ export async function authenticate(
       error: "接続できませんでした。時間をおいてもう一度お試しください。",
     };
   }
-  redirect("/account");
+  redirect(mode === "signup" ? "/account/onboarding" : "/account");
 }
 export async function signOut() {
   const client = await createClient();

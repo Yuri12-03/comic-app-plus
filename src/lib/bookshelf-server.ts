@@ -10,6 +10,10 @@ export async function requireBookshelfUser() {
   if (!client) redirect("/login");
   const { data, error } = await client.auth.getClaims();
   if (error || !data?.claims?.sub) redirect("/login");
+  if (data.claims.user_metadata?.profile_setup_required === true) {
+    const profile = await client.from("user_profiles").select("id").eq("id", String(data.claims.sub)).maybeSingle();
+    if (!profile.data) redirect("/account/onboarding");
+  }
   return { client, userId: String(data.claims.sub) };
 }
 

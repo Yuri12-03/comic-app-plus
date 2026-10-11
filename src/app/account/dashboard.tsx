@@ -42,7 +42,7 @@ export default function Dashboard() {
     {sections.map((section, index) => <section className="dashboard-section" key={section.title} aria-labelledby={`section-${index}`}>
       <div className="dashboard-section-heading"><h2 id={`section-${index}`}>{section.title}</h2><p>{section.subtitle}</p></div>
       <div className={`dashboard-grid ${index === 0 ? "bookshelf-grid" : ""}`}>
-        {section.items.map((item) => ["自分の本棚", "漫画を登録"].includes(item.title) ? <Link key={item.title} href={item.title === "漫画を登録" ? "/account/bookshelf/register" : "/account/bookshelf"} className={`feature-button feature-${item.color}`}>
+        {section.items.map((item) => ["自分の本棚", "漫画を登録", "設定"].includes(item.title) ? <Link key={item.title} href={item.title === "設定" ? "/account/settings" : item.title === "漫画を登録" ? "/account/bookshelf/register" : "/account/bookshelf"} className={`feature-button feature-${item.color}`}>
           <span className="feature-icon"><Icon type={item.icon} /></span>
           <span className="feature-copy"><strong>{item.title}</strong><span>{item.description}</span></span>
           <span className="feature-arrow" aria-hidden="true">↗</span>

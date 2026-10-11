@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test:profile": "node scripts/test-profile.mjs && node scripts/test-profile-actions.mjs",
     "test:bookshelf": "node scripts/test-bookshelf.mjs",
     "test:registration": "node scripts/test-registration.mjs"
   },
