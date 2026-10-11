@@ -4,11 +4,12 @@ import ComicCover from "@/components/comic-cover";
 import type { BookMetadata } from "@/lib/isbn";
 import { lookupTitle } from "./actions";
 
-export default function TitleSearchForm({ onSelect, onSearch }: { onSelect: (book: BookMetadata) => void; onSearch: () => void }) {
+export default function TitleSearchForm({ onSelect, onSearch, selected }: { onSelect: (book: BookMetadata) => void; onSearch: () => void; selected: BookMetadata | null }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<BookMetadata[]>([]);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  if (selected) return <section className="registration-isbn" aria-label="選択した作品"><div className="registration-step"><span>01</span><h2>選択した作品</h2></div><div className="title-search-candidate"><ComicCover title={selected.seriesTitle} volume={selected.volume} url={selected.coverUrl || null}/><div><h4>{selected.seriesTitle}</h4><p>{selected.author}</p><p>{selected.publisher}</p><button type="button" className="button secondary" onClick={onSearch}>別の作品を選ぶ</button></div></div></section>;
   return <section className="registration-isbn" aria-labelledby="title-search-heading">
     <div className="registration-step"><span>01</span><h2 id="title-search-heading">漫画名から探す</h2></div>
     <form className="isbn-search" onSubmit={async event => {
