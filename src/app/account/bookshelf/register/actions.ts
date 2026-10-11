@@ -2,10 +2,22 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireBookshelfUser } from "@/lib/bookshelf-server";
+import { loadBookshelf, requireBookshelfUser } from "@/lib/bookshelf-server";
 import { fetchBookMetadata } from "@/lib/book-metadata";
-import { normalizeIsbn, safeCoverUrl, type BookMetadata } from "@/lib/isbn";
+import { inferVolume, normalizeIsbn, safeCoverUrl, type BookMetadata } from "@/lib/isbn";
 import { searchSeries } from "@/lib/series-search";
+
+export async function lookupOwnedSeriesRange(seriesId: string, start: number, end: number): Promise<{ books?: BookMetadata[]; error?: string }> {
+  const shelf = await loadBookshelf();
+  const series = shelf.series.find(item => item.id === seriesId);
+  if (shelf.failed || !series) return { error: "追加先の作品を読み込めませんでした。作品詳細からもう一度お試しください。" };
+  if (!Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end > 9999 || end < start || end - start >= 50) return { error: "範囲は1〜9999巻の中から、一度に50冊まで指定してください。" };
+  const copy = series.comic_copies.find(item => item.book_title) ?? series.comic_copies[0];
+  const title = copy.book_title ? inferVolume(copy.book_title).title : series.title;
+  try {
+    return { books: await searchSeries(title || series.title, series.author ?? "", copy.publisher ?? "", start, end) };
+  } catch { return { error: "巻数の検索サービスに接続できませんでした。時間をおいて再度お試しください。" }; }
+}
 
 export async function lookupRange(input: string, start: number, end: number): Promise<{ books?: BookMetadata[]; error?: string }> {
   await requireBookshelfUser();
