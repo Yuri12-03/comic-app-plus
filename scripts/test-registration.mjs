@@ -67,18 +67,26 @@ assert.equal(titleSearch.titleCandidates(`<searchRetrieveResponse><records>${rec
 assert.equal(isbn.safeCoverUrl("javascript:alert(1)"), "");
 assert.equal(isbn.safeCoverUrl("https://user:password@example.com/a.jpg"), "");
 
-const book = { summary: { isbn: "9784088725093", title: "One piece 巻1", author: "尾田栄一郎", publisher: "集英社", cover: "" } };
-const fetchMock = async (url) => ({ ok: true, json: async () => url.includes("openbd") ? [book] : { "ISBN:9784088725093": { title: "ONE PIECE 1", identifiers: { isbn_13: ["9784088725093"] }, cover: { large: "http://covers.openlibrary.org/b/id/123-L.jpg" } } } });
-const metadata = load("src/lib/book-metadata.ts", { "./isbn": isbn }, { fetch: fetchMock, AbortSignal, process: { env: {} } });
+const book = { summary: { isbn: "9784088725093", title: "Wrong external title", author: "Wrong author", publisher: "Wrong publisher", cover: "" } };
+const fetchMock = async (url) => ({ ok: true, json: async () => url.includes("openbd") ? [book] : { "ISBN:9784088725093": { title: "Wrong title", identifiers: { isbn_13: ["9784088725093"] }, cover: { large: "http://covers.openlibrary.org/b/id/123-L.jpg" } } } });
+const covers = load("src/lib/cover-provider.ts", { "./isbn": isbn }, { fetch: fetchMock, AbortSignal, process: { env: {} } });
+const ndlBook = { ...parsed[0], author: "NDL author", publisher: "NDL publisher", description: "NDL description" };
+const metadata = load("src/lib/book-metadata.ts", { "./title-search": { findTitleBook: async () => ndlBook }, "./cover-provider": covers });
 const result = await metadata.fetchBookMetadata("9784088725093");
-assert.equal(result.seriesTitle, "One piece");
+assert.equal(result.seriesTitle, "ONE PIECE");
 assert.equal(result.volume, 1);
+assert.equal(result.author, "NDL author");
+assert.equal(result.publisher, "NDL publisher");
+assert.equal(result.description, "NDL description");
+assert.equal(result.source, "国立国会図書館");
 assert.equal(result.coverSource, "Open Library");
 assert.equal(result.coverUrl, "https://covers.openlibrary.org/b/id/123-L.jpg");
-const mismatch = load("src/lib/book-metadata.ts", { "./isbn": isbn }, { fetch: async () => ({ ok: true, json: async () => [{ summary: { isbn: "9784088725444", title: "Wrong book" } }] }), AbortSignal, process: { env: {} } });
-assert.equal(await mismatch.fetchBookMetadata("9784088725093"), null);
-const failed = load("src/lib/book-metadata.ts", { "./isbn": isbn }, { fetch: async () => { throw new Error("offline"); }, AbortSignal, process: { env: {} } });
+const missing = load("src/lib/book-metadata.ts", { "./title-search": { findTitleBook: async () => null }, "./cover-provider": covers });
+assert.equal(await missing.fetchBookMetadata("9784088725093"), null, "Never substitute other services' book information when NDL is missing");
+const failed = load("src/lib/book-metadata.ts", { "./title-search": { findTitleBook: async () => { throw new Error("offline"); } }, "./cover-provider": covers });
 assert.equal(await failed.fetchBookMetadata("9784088725093"), null);
+const wrongCover = load("src/lib/cover-provider.ts", { "./isbn": isbn }, { fetch: async () => ({ ok: true, json: async () => [{ summary: { isbn: "9784088725444", cover: "https://wrong.example/cover.jpg" } }] }), AbortSignal, process: { env: {} } });
+assert.equal((await wrongCover.fetchExternalCover("9784088725093")).coverUrl.includes("wrong.example"), false);
 
 // Generate a readable EAN-13 fixture and verify decoding with the scanner library.
 const left = ["0001101","0011001","0010011","0111101","0100011","0110001","0101111","0111011","0110111","0001011"];
@@ -102,4 +110,4 @@ reader.setHints(new Map([[DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.EAN_13
 assert.equal(reader.decode(new BinaryBitmap(new HybridBinarizer(new RGBLuminanceSource(pixels, width, height)))).getText(), code);
 fs.mkdirSync("scripts/fixtures", { recursive: true });
 fs.writeFileSync("scripts/fixtures/isbn-barcode.svg", `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><rect width="100%" height="100%" fill="white"/><g fill="black">${bars.join("")}</g><text x="${width / 2}" y="174" text-anchor="middle" font-family="sans-serif" font-size="18">${code}</text></svg>`);
-console.log("ISBN validation, metadata fallback, and EAN-13 decoding tests passed");
+console.log("ISBN validation, NDL-only metadata, external covers, and EAN-13 decoding tests passed");

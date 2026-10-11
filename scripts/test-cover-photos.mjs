@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import ts from 'typescript';
+import { webcrypto } from 'node:crypto';
+function load(path, imports) { const exports = {}; vm.runInNewContext(ts.transpileModule(fs.readFileSync(path,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports,File,Uint8Array,crypto:webcrypto,require:name=>imports[name] ?? {}});return exports; }
+const profile=load('src/lib/profile.ts',{});
+const photos=load('src/lib/cover-photos.ts',{'./profile':profile});
+const uid='11111111-1111-1111-1111-111111111111';
+let uploaded=[], removed=[], attached=[], own=true, failure=false;
+const client={from:()=>({select:()=>({in:async()=>({data:attached.map(cover_path=>({cover_path})),error:null}),eq:()=>({maybeSingle:async()=>({data:own?{id:'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',series_id:'series'}:null,error:null})})})}),storage:{from:()=>({upload:async(path)=>{uploaded.push(path);return {error:null};},remove:async(paths)=>{removed.push(...paths);return {error:null};},createSignedUrl:async()=>({data:{signedUrl:'https://storage.example/photo.jpg'}})})},rpc:async(_name,args)=>{if(!failure)attached.push(args.p_path);return {data:null,error:failure?new Error('failed'):null};}};
+const jpeg=new File([Uint8Array.from([255,216,255,224])],'cover.jpg',{type:'image/jpeg'});
+await assert.rejects(photos.uploadCover(client,uid,new File(['<svg/>'],'image.jpg',{type:'image/jpeg'})));
+assert.equal(uploaded.length,0,'Reject disguised SVG before upload');
+await assert.rejects(photos.uploadCover(client,uid,new File([new Uint8Array(524289)],'large.jpg',{type:'image/jpeg'})));
+assert.equal(uploaded.length,0);
+const path=await photos.uploadCover(client,uid,jpeg); assert.ok(path.startsWith(`${uid}/`));
+attached=[path]; await photos.discardUnusedCovers(client,[path,`${uid}/unused.jpg`]);assert.equal(removed.length,1);assert.ok(removed[0].endsWith('unused.jpg'));
+const actions=load('src/app/account/bookshelf/cover-actions.ts',{'@/lib/bookshelf-server':{requireBookshelfUser:async()=>({client,userId:uid})},'@/lib/cover-photos':photos,'next/cache':{revalidatePath(){}}});
+const form=new FormData();form.set('copyId','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa');form.set('photo',jpeg);form.set('userId','attacker-selected-owner');
+const before=uploaded.length;own=false;assert.ok((await actions.saveCoverPhoto(form)).error);assert.equal(uploaded.length,before,'No uploads for a copy rejected by own RLS');
+own=true;failure=true;assert.ok((await actions.saveCoverPhoto(form)).error);assert.ok(removed.includes(uploaded.at(-1)),'Remove unattached photo on failed save');
+failure=false;const saved=await actions.saveCoverPhoto(form);assert.equal(saved.url,'https://storage.example/photo.jpg');assert.ok(uploaded.at(-1).startsWith(`${uid}/`));assert.ok(!removed.includes(uploaded.at(-1)),'Keep attached photo');
+console.log('Cover photo validation, ownership, failed-save cleanup and successful attachment passed');

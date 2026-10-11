@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { loadFriends } from "./friends-server";
 import { createClient } from "./supabase/server";
 import type { ComicSeries } from "./bookshelf";
+import { signComicCovers } from "./cover-photos";
 
 export async function loadFriendBookshelf(ownerId: string) {
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ownerId)) notFound();
@@ -14,5 +15,5 @@ export async function loadFriendBookshelf(ownerId: string) {
   if (!client) notFound();
   const result = await client.rpc("read_friend_bookshelf", { p_owner: ownerId });
   if (result.error?.message.includes("FRIEND_NOT_FOUND")) notFound();
-  return { friend, series: (result.data ?? []) as ComicSeries[], failed: Boolean(result.error) };
+  return { friend, series: await signComicCovers(client, (result.data ?? []) as ComicSeries[]), failed: Boolean(result.error) };
 }

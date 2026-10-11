@@ -15,7 +15,7 @@ export function parseSeriesRecords(xml: string, title: string, start: number, en
     const resources = array(object(object(object(record).recordData)["rdf:RDF"])["dcndl:BibResource"]);
     for (const resource of resources) {
       const item = object(resource);
-      const rawTitle = text(object(object(item["dc:title"])["rdf:Description"])["rdf:value"]);
+      const rawTitle = text(object(object(item["dc:title"])["rdf:Description"])["rdf:value"]) || text(item["dcterms:title"]);
       const seriesTitle = inferVolume(rawTitle).title;
       if (!seriesTitle || (title && key(seriesTitle) !== key(title))) continue;
       const rawVolume = text(object(object(item["dcndl:volume"])["rdf:Description"])["rdf:value"]);
@@ -26,7 +26,7 @@ export function parseSeriesRecords(xml: string, title: string, start: number, en
         if (!text(object(id)["@_rdf:datatype"]).endsWith("/ISBN")) continue;
         const isbn = normalizeIsbn(text(id));
         if (!isbn || found.has(isbn)) continue;
-        found.set(isbn, { isbn, seriesTitle, volume, bookTitle: text(item["dcterms:title"]), author: array(item["dc:creator"]).map(text).join("、"), publisher, publishedDate: text(item["dcterms:date"]), description: "", coverUrl: `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg?default=false`, source: "国立国会図書館", coverSource: "Open Library" });
+        found.set(isbn, { isbn, seriesTitle, volume, bookTitle: text(item["dcterms:title"]) || rawTitle, author: array(item["dc:creator"]).map(text).join("、"), publisher, publishedDate: text(item["dcterms:date"]), description: array(item["dcterms:abstract"]).map(text).join("\n").replace(/<[^>]*>/g, "").slice(0, 5000), coverUrl: `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg?default=false`, source: "国立国会図書館", coverSource: "Open Library" });
       }
     }
   }

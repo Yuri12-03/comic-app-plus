@@ -488,3 +488,19 @@ select:focus-visible, textarea:focus-visible { outline: 3px solid #d38a42; outli
 .range-book { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 16px; align-items: start; padding: 16px 0; border-bottom: 1px solid #dddcd1; }
 .range-book .comic-cover { width: 70px; }
 .range-book .field { gap: 6px; }
+.cover-container { min-width: 0; }
+.cover-camera { width: 100%; border: 0; cursor: pointer; font: inherit; }
+.cover-camera:disabled { cursor: wait; opacity: .7; }
+.cover-camera:hover { background: #e0e8dc; }
+.cover-photo-dialog { width: min(420px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); overflow-y: auto; border: 1px solid var(--line); border-radius: 18px; padding: 24px; color: var(--ink); }
+.cover-photo-dialog::backdrop { background: #17251c88; }
+.cover-photo-dialog h2 { margin-top: 0; font-size: 21px; }
+.cover-photo-preview { height: min(42dvh, 320px); background: #eee; border-radius: 8px; overflow: hidden; }
+.cover-photo-preview img { width: 100%; height: 100%; object-fit: contain; }
+.cover-photo-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.range-book .cover-container { width: 70px; }
+.range-book .cover-placeholder { padding: 6px; gap: 4px; }
+.range-book .cover-placeholder strong { font-size: 10px; }
+.range-book .cover-placeholder > span:first-child { font-size: 16px; }
+.range-book .cover-placeholder small { font-size: 9px; }
+@media (max-width: 640px) { .comic-detail > .cover-container { width: 180px; margin: 0 auto; } }

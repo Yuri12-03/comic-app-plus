@@ -16,13 +16,15 @@ function BookConfirmation({ book, series }: { book: BookMetadata; series: Series
   const match = series.find((item) => item.title.normalize("NFKC").replace(/\s/g, "").toLowerCase() === book.seriesTitle.replace(/\s/g, "").toLowerCase());
   const [seriesId, setSeriesId] = useState(match?.id ?? "");
   const [coverUrl, setCoverUrl] = useState(book.coverUrl);
+  const [photo, setPhoto] = useState<File | null>(null);
   return <section className="registration-confirmation" aria-labelledby="confirm-heading">
     <div className="registration-step"><span>02</span><h2 id="confirm-heading">内容を確認して、本棚へ</h2></div>
-    <div className="registration-book-summary"><ComicCover title={book.bookTitle || "登録する漫画"} volume={book.volume} url={coverUrl || null} /><div><span className="comic-owned">ISBN {book.isbn}</span><h3>{book.bookTitle || "情報を入力してください"}</h3>{book.publisher && <p>{book.publisher} / {book.publishedDate}</p>}<p className="help">書誌情報：{book.source}{book.coverSource && ` / 表紙：${book.coverSource}`}</p></div></div>
+    <div className="registration-book-summary"><ComicCover title={book.bookTitle || "登録する漫画"} volume={book.volume} url={coverUrl || null} onPhoto={setPhoto} disabled={pending} /><div><span className="comic-owned">ISBN {book.isbn}</span><h3>{book.bookTitle || "情報を入力してください"}</h3>{book.publisher && <p>{book.publisher} / {book.publishedDate}</p>}<p className="help">書誌情報：{book.source}{book.coverSource && ` / 表紙：${book.coverSource}`}</p></div></div>
     <p className="help">作品名は各巻をまとめる名前です。巻数や追加先が正しいか確認してください。</p>
     <form className="auth-form" onReset={(event) => event.preventDefault()} onSubmit={(event) => {
       event.preventDefault();
       const form = new FormData(event.currentTarget);
+      if (photo) form.set("photo", photo);
       startTransition(() => action(form));
     }}>
       <input type="hidden" name="isbn" value={book.isbn} /><input type="hidden" name="token" value={token} />
@@ -32,7 +34,7 @@ function BookConfirmation({ book, series }: { book: BookMetadata; series: Series
         <label className="field">作品名<input name="title" required maxLength={200} defaultValue={book.seriesTitle} placeholder="例：ONE PIECE" /></label>
         <div className="registration-two-fields"><label className="field">巻数<input name="volume" required type="number" inputMode="numeric" min="1" max="9999" step="1" defaultValue={book.volume ?? ""} placeholder="例：1" /></label><label className="field">著者<input name="author" maxLength={500} defaultValue={book.author} /></label></div>
         <label className="field">作品紹介<textarea name="description" rows={4} maxLength={5000} defaultValue={book.description} /></label>
-        <label className="field">表紙画像のURL<input name="coverUrl" type="url" value={coverUrl} onChange={(event) => setCoverUrl(event.target.value)} placeholder="https://…（任意）" maxLength={2000} /><span className="help">表紙が取得できない場合は空欄でも登録できます。</span></label>
+        <label className="field">表紙画像のURL<input name="coverUrl" type="url" value={coverUrl} onChange={(event) => setCoverUrl(event.target.value)} placeholder="https://…（任意）" maxLength={2000} /><span className="help">表紙がない時は「No Image」をタップすると撮影できます。</span></label>
         {state.duplicate && <label className="duplicate-confirm"><input type="checkbox" name="allowDuplicate" />同じISBNをもう1冊持っているので追加する</label>}
       </fieldset>
       {state.error && <p className="notice error" role="alert">{state.error}</p>}

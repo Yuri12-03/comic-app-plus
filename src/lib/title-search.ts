@@ -1,6 +1,6 @@
 import "server-only";
 import { parseSeriesRecords } from "./series-search";
-import { fetchBookMetadata } from "./book-metadata";
+import { fetchExternalCover } from "./cover-provider";
 import type { BookMetadata } from "./isbn";
 
 const key = (value: string) => value.normalize("NFKC").replace(/\s/g, "").toLowerCase();
@@ -26,8 +26,8 @@ export async function searchBooksByTitle(input: string): Promise<BookMetadata[]>
   const escaped = query.replace(/["\\]/g, " ");
   const candidates = titleCandidates(await searchXml(`title="${escaped}" AND ndc="726"`), query);
   return Promise.all(candidates.map(async candidate => {
-    const extra = await fetchBookMetadata(candidate.isbn);
-    return { ...candidate, description: extra?.description ?? "", coverUrl: extra?.coverUrl || candidate.coverUrl, coverSource: extra?.coverSource || candidate.coverSource };
+    const extra = await fetchExternalCover(candidate.isbn);
+    return { ...candidate, coverUrl: extra?.coverUrl || candidate.coverUrl, coverSource: extra?.coverSource || candidate.coverSource };
   }));
 }
 export async function findTitleBook(isbn: string): Promise<BookMetadata | null> {

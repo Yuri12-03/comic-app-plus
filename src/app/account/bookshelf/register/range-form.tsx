@@ -14,6 +14,7 @@ export default function RangeForm({ book, series, target, fromTitle = false }: {
   const [multiple, setMultiple] = useState(!target);
   const [result, setResult] = useState<{ start: number; end: number; books: Candidate[] } | null>(null);
   const [selected, setSelected] = useState<Record<number, string>>({});
+  const [photos, setPhotos] = useState<Record<string, File>>({});
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [checkingCovers, setCheckingCovers] = useState(false);
@@ -43,14 +44,14 @@ export default function RangeForm({ book, series, target, fromTitle = false }: {
       <button className="button secondary" disabled={busy || pending}>{busy ? checkingCovers ? "表紙を確認しています…" : "各巻を探しています…" : "この範囲の漫画を探す"}</button>
     </form>
     {message && <p className="notice" role="alert">{message}</p>}
-    {result && <form className="auth-form range-results" onReset={event => event.preventDefault()} onSubmit={event => { event.preventDefault(); const form = new FormData(event.currentTarget); startTransition(() => action(form)); }}>
+    {result && <form className="auth-form range-results" onReset={event => event.preventDefault()} onSubmit={event => { event.preventDefault(); const form = new FormData(event.currentTarget); const files = selectedBooks.map(book => ({ isbn: book.isbn, photo: photos[book.isbn] })).filter(item => item.photo); if (files.reduce((sum, item) => sum + item.photo.size, 0) > 2.5 * 1024 * 1024) { setMessage("写真の合計が大きいため、登録する巻を分けてください。"); return; } for (const item of files) form.set(`photo:${item.isbn}`, item.photo); startTransition(() => action(form)); }}>
       <h3>追加する巻を確認</h3><p className="help">複数の候補がある巻は、表紙を表示できた候補を優先して選んでいます。通常版・新装版など、持っている本と一致するISBNか確認してください。見つからない巻や除外した巻は保存されません。</p>
       <fieldset disabled={pending || busy} className="registration-fields">
         {Array.from({ length: result.end - result.start + 1 }, (_, index) => result.start + index).map(volume => {
           const candidates = result.books.filter(item => item.volume === volume);
           const current = candidates.find(item => item.isbn === selected[volume]);
           return <div className="range-book" key={volume}>
-            <ComicCover title={book.seriesTitle} volume={volume} url={current?.coverUrl || null} />
+            <ComicCover key={current?.isbn ?? `missing-${volume}`} title={book.seriesTitle} volume={volume} url={current?.coverUrl || null} disabled={pending || busy} onPhoto={current ? file => setPhotos(previous => ({ ...previous, [current.isbn]: file })) : undefined} />
             <div><label className="field">{volume}巻<select aria-label={`${volume}巻のISBN`} value={selected[volume] ?? ""} onChange={event => setSelected({ ...selected, [volume]: event.target.value })}><option value="">{candidates.length ? "追加しない / 候補を選択" : "情報が見つかりませんでした"}</option>{candidates.map(item => <option key={item.isbn} value={item.isbn}>{item.isbn} / {item.publisher} / {item.publishedDate}</option>)}</select></label>{current && <p className="help">{current.bookTitle}</p>}{candidates.length > 1 && <p className="help">複数の候補があります。ISBNを確認して選んでください。</p>}</div>
           </div>;
         })}

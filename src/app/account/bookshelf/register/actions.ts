@@ -6,7 +6,8 @@ import { loadBookshelf, requireBookshelfUser } from "@/lib/bookshelf-server";
 import { fetchBookMetadata } from "@/lib/book-metadata";
 import { inferVolume, normalizeIsbn, safeCoverUrl, type BookMetadata } from "@/lib/isbn";
 import { searchSeries } from "@/lib/series-search";
-import { searchBooksByTitle, findTitleBook } from "@/lib/title-search";
+import { searchBooksByTitle } from "@/lib/title-search";
+import { discardUnusedCovers, uploadCover } from "@/lib/cover-photos";
 
 export async function lookupTitle(input: string): Promise<{ books?: BookMetadata[]; error?: string }> {
   await requireBookshelfUser();
@@ -35,7 +36,7 @@ export async function lookupRange(input: string, start: number, end: number): Pr
   const isbn = normalizeIsbn(input);
   if (!isbn || !Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end > 9999 || end < start || end - start >= 50) return { error: "範囲は1〜9999巻の中から、一度に50冊まで指定してください。" };
   try {
-    const base = await fetchBookMetadata(isbn) ?? await findTitleBook(isbn);
+    const base = await fetchBookMetadata(isbn);
     if (!base?.seriesTitle) return { error: "作品を特定できません。選択した本を確認してください。" };
     const books = await searchSeries(base.seriesTitle, base.author, base.publisher, start, end);
     if (base.volume && base.volume >= start && base.volume <= end) {
@@ -47,7 +48,7 @@ export async function lookupRange(input: string, start: number, end: number): Pr
 }
 
 export async function registerRange(_state: RegisterState, form: FormData): Promise<RegisterState> {
-  const { client } = await requireBookshelfUser();
+  const { client, userId } = await requireBookshelfUser();
   const title = String(form.get("title") ?? "").normalize("NFKC").trim();
   const author = String(form.get("author") ?? "").trim();
   const seriesId = String(form.get("seriesId") ?? "");
@@ -60,7 +61,23 @@ export async function registerRange(_state: RegisterState, form: FormData): Prom
     const metadata = await fetchBookMetadata(isbn);
     return { isbn, volume: book.volume, token: book.token, coverUrl: metadata?.coverUrl || `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg?default=false`, metadata: metadata ?? { isbn, bookTitle: `${title} ${book.volume}巻`, seriesTitle: title, volume: book.volume, author, source: "利用者確認", publisher: "", publishedDate: "", description: "", coverUrl: "", coverSource: "" } };
   }));
+  const paths: string[] = [];
+  const photos = books.map(book => form.get(`photo:${normalizeIsbn(book.isbn)}`)).filter((photo): photo is File => photo instanceof File);
+  if (photos.reduce((sum, photo) => sum + photo.size, 0) > 2.5 * 1024 * 1024) return { error: "写真の合計が大きいため、登録する巻を分けてください。" };
+  try {
+    for (const entry of entries) {
+      const photo = form.get(`photo:${entry.isbn}`);
+      if (photo instanceof File && photo.size) {
+        const coverPath = await uploadCover(client, userId, photo); paths.push(coverPath);
+        entry.metadata = { ...entry.metadata, ...{ coverPath, coverSource: "表紙写真" } };
+      }
+    }
+  } catch (error) {
+    await discardUnusedCovers(client, paths);
+    return { error: error instanceof Error ? error.message : "写真を保存できませんでした。" };
+  }
   const { data, error } = await client.rpc("register_comic_batch", { p_title: title, p_author: author, p_description: "", p_series_id: seriesId || null, p_allow_duplicate: form.get("allowDuplicate") === "on", p_books: entries });
+  await discardUnusedCovers(client, paths);
   if (error) {
     if (error.message.includes("DUPLICATE_ISBN")) return { error: "すでに登録されているISBNがあります。追加の実物を持っている場合のみ、下のチェックを入れてください。まだ保存は行われていません。", duplicate: true };
     return { error: "まとめて保存できませんでした。内容を保持していますので、時間をおいて再度お試しください。" };
@@ -80,7 +97,7 @@ export async function lookupIsbn(input: string): Promise<{ book?: BookMetadata; 
 
 export type RegisterState = { error?: string; duplicate?: boolean };
 export async function registerComic(_state: RegisterState, form: FormData): Promise<RegisterState> {
-  const { client } = await requireBookshelfUser();
+  const { client, userId } = await requireBookshelfUser();
   const isbn = normalizeIsbn(String(form.get("isbn") ?? ""));
   const title = String(form.get("title") ?? "").normalize("NFKC").trim();
   const author = String(form.get("author") ?? "").trim();
@@ -97,11 +114,18 @@ export async function registerComic(_state: RegisterState, form: FormData): Prom
   // Preserve original provider metadata separately from the user's shelf labels.
   const original = await fetchBookMetadata(isbn);
   const metadata: BookMetadata = original ?? { isbn, bookTitle: String(form.get("bookTitle") ?? "").slice(0, 500) || title, seriesTitle: title, volume, author, description, coverUrl, publisher: String(form.get("publisher") ?? "").slice(0, 200), publishedDate: String(form.get("publishedDate") ?? "").slice(0, 100), source: "手入力・確認済み", coverSource: "" };
+  const photo = form.get("photo");
+  let coverPath = "";
+  if (photo instanceof File && photo.size) {
+    try { coverPath = await uploadCover(client, userId, photo); }
+    catch (error) { return { error: error instanceof Error ? error.message : "写真を保存できませんでした。" }; }
+  }
   const { data, error } = await client.rpc("register_comic", {
     p_isbn: isbn, p_title: title, p_volume: volume, p_author: author, p_description: description,
-    p_cover_url: coverUrl, p_metadata: metadata, p_series_id: seriesId || null,
+    p_cover_url: coverUrl, p_metadata: coverPath ? { ...metadata, coverPath, coverSource: "表紙写真" } : metadata, p_series_id: seriesId || null,
     p_allow_duplicate: form.get("allowDuplicate") === "on", p_token: token,
   });
+  await discardUnusedCovers(client, coverPath ? [coverPath] : []);
   if (error) {
     if (error.message.includes("DUPLICATE_ISBN")) return { error: "同じISBNの漫画が、すでに本棚にあります。もう1冊持っている場合は、チェックを入れて登録してください。", duplicate: true };
     if (error.message.includes("SERIES_NOT_FOUND")) return { error: "追加先の作品が見つかりません。追加先を選び直してください。" };
