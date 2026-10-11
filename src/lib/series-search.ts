@@ -11,6 +11,7 @@ export function parseSeriesRecords(xml: string, title: string, start: number, en
   const parsed = new XMLParser({ ignoreAttributes: false, parseTagValue: false, processEntities: false }).parse(xml);
   const records = array(parsed?.searchRetrieveResponse?.records?.record);
   const found = new Map<string, BookMetadata>();
+  const quality = new Map<string, number>();
   for (const record of records) {
     const resources = array(object(object(object(record).recordData)["rdf:RDF"])["dcndl:BibResource"]);
     for (const resource of resources) {
@@ -18,15 +19,21 @@ export function parseSeriesRecords(xml: string, title: string, start: number, en
       const rawTitle = text(object(object(item["dc:title"])["rdf:Description"])["rdf:value"]) || text(item["dcterms:title"]);
       const seriesTitle = inferVolume(rawTitle).title;
       if (!seriesTitle || (title && key(seriesTitle) !== key(title))) continue;
-      const rawVolume = text(object(object(item["dcndl:volume"])["rdf:Description"])["rdf:value"]);
-      const volume = inferVolume(rawTitle, rawVolume).volume;
+      const rawVolume = text(object(object(item["dcndl:volume"])["rdf:Description"])["rdf:value"]) || text(item["dcndl:volume"]);
+      const identifiers = array(item["dcterms:identifier"]).filter(id => text(object(id)["@_rdf:datatype"]).endsWith("/ISBN"));
+      const isbns = [...new Set(identifiers.map(id => normalizeIsbn(text(id))).filter((isbn): isbn is string => Boolean(isbn)))];
+      // A multi-volume catalogue can attach several ISBNs to its first-volume title.
+      // It cannot reliably describe one physical volume, so do not use it for registration.
+      if (isbns.length !== 1) continue;
+      const volume = inferVolume(rawTitle, rawVolume).volume ?? inferVolume(text(item["dcterms:title"])).volume;
       if (title ? !volume || volume < start || volume > end : volume !== null && (volume < start || volume > end)) continue;
       const publisher = text(object(object(item["dcterms:publisher"])["foaf:Agent"])["foaf:name"]);
-      for (const id of array(item["dcterms:identifier"])) {
-        if (!text(object(id)["@_rdf:datatype"]).endsWith("/ISBN")) continue;
-        const isbn = normalizeIsbn(text(id));
-        if (!isbn || found.has(isbn)) continue;
-        found.set(isbn, { isbn, seriesTitle, volume, bookTitle: text(item["dcterms:title"]) || rawTitle, author: array(item["dc:creator"]).map(text).join("、"), publisher, publishedDate: text(item["dcterms:date"]), description: array(item["dcterms:abstract"]).map(text).join("\n").replace(/<[^>]*>/g, "").slice(0, 5000), coverUrl: `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg?default=false`, source: "国立国会図書館", coverSource: "Open Library" });
+      for (const isbn of isbns) {
+        const nationalRecord = `${text(object(record).recordIdentifier)} ${text(item["@_rdf:about"])}`.includes("R100000002");
+        const score = (volume !== null ? 10 : 0) + (rawVolume ? 2 : 0) + (nationalRecord ? 20 : 0);
+        if (found.has(isbn) && (quality.get(isbn) ?? 0) >= score) continue;
+        quality.set(isbn, score);
+        found.set(isbn, { isbn, seriesTitle, volume, bookTitle: text(item["dcterms:title"]) || rawTitle, author: array(item["dc:creator"]).map(text).join("、"), publisher, publishedDate: text(item["dcterms:date"]) || text(item["dcterms:issued"]), description: array(item["dcterms:abstract"]).map(text).join("\n").replace(/<[^>]*>/g, "").slice(0, 5000), coverUrl: `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg?default=false`, source: "国立国会図書館", coverSource: "Open Library" });
       }
     }
   }
