@@ -500,7 +500,11 @@ select:focus-visible, textarea:focus-visible { outline: 3px solid #d38a42; outli
 .cover-photo-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
 .range-book .cover-container { width: 70px; }
 .range-book .cover-placeholder { padding: 6px; gap: 4px; }
-.range-book .cover-placeholder strong { font-size: 10px; }
+.range-book .cover-placeholder strong { display: none; }
 .range-book .cover-placeholder > span:first-child { font-size: 16px; }
 .range-book .cover-placeholder small { font-size: 9px; }
+.registration-book-summary .cover-placeholder { padding: 8px; gap: 6px; }
+.registration-book-summary .cover-placeholder strong { font-size: 12px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.registration-book-summary .cover-placeholder > span:first-child { font-size: 20px; }
+.registration-book-summary .cover-placeholder small { font-size: 10px; }
 @media (max-width: 640px) { .comic-detail > .cover-container { width: 180px; margin: 0 auto; } }

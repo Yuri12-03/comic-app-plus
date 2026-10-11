@@ -33,7 +33,7 @@ export default function ComicCover({ title, volume, url, copyId, href, onPhoto, 
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
   useEffect(() => { if (choosing) dialog.current?.showModal(); else dialog.current?.close(); }, [choosing]);
   const displayed = savedUrl || url;
-  const allowed = displayed?.startsWith("https://") || displayed?.startsWith("/sample-covers/");
+  const allowed = displayed?.startsWith("https://") || displayed?.startsWith("/sample-covers/") || (displayed === preview && Boolean(photo));
   const present = Boolean(displayed && allowed && failedUrl !== displayed);
   const editable = Boolean(copyId || onPhoto);
   const volumeText = volume === null ? "" : `${volume}巻`;
