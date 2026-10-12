@@ -11,5 +11,5 @@ export default async function AddFriend({searchParams}:{searchParams:Promise<{co
   const client=await createClient();const auth=client?await client.auth.getUser():null;
   if(!auth?.data.user) redirect(`/login?next=${encodeURIComponent(next)}`);
   const result=code?await findFriend(code):{error:"QRコードのフレンドIDが正しくありません。友達管理から追加してください。"};
-  return <><Link className="shelf-back" href="/account/friends/manage">← 友達管理へ</Link><p className="eyebrow">FRIEND REQUEST</p><h1>友達とつながろう</h1><FriendRequestForm initialCandidate={result.candidate} initialError={result.error}/></>;
+  return <><Link className="shelf-back" href="/account/friends/manage">← 友達管理へ</Link><h1>フレンド申請</h1><FriendRequestForm initialCandidate={result.candidate} initialError={result.error}/></>;
 }

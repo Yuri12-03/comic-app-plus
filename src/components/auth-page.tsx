@@ -22,8 +22,7 @@ export async function AuthPage({ mode, next }: { mode: "login" | "signup"; next?
       </header>
       <main className="auth-shell">
         <div className="card">
-          <p className="eyebrow">WELCOME TO YOUR BOOKSHELF</p>
-          <h1>{mode === "signup" ? "本棚をはじめよう" : "おかえりなさい"}</h1>
+          <h1>{mode === "signup" ? "新規登録" : "ログイン"}</h1>
           <p className="intro">
             {mode === "signup"
               ? "メールアドレスでアカウントを作成します。"

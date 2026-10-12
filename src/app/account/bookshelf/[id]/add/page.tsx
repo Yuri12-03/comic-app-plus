@@ -13,8 +13,7 @@ export default async function AddVolumes({ params }: { params: Promise<{ id: str
   const { volumes } = summarizeSeries(series);
   const nextVolume = Math.min(9999, Math.max(...volumes) + 1);
   return <>
-    <Link className="shelf-back" href={`/account/bookshelf/${id}`}>← 作品詳細へ</Link>
-    <p className="eyebrow">ADD VOLUMES</p><h1>{series.title}</h1>
+    <Link className="shelf-back" href={`/account/bookshelf/${id}`}>← 作品詳細へ</Link><h1>{series.title}</h1>
     <p className="intro">現在の所持巻：{volumeLabel(volumes)}</p>
     <RangeForm series={[]} target={{ id, title: series.title, author: series.author, nextVolume }} book={{ isbn: "", bookTitle: series.title, seriesTitle: series.title, author: series.author ?? "", volume: null, publisher: "", publishedDate: "", description: "", coverUrl: "", source: "", coverSource: "" }} />
   </>;

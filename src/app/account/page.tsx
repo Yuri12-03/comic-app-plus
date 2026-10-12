@@ -20,9 +20,8 @@ export default async function Account({
       </header>
       <main className="dashboard-shell">
           <div className="dashboard-welcome">
-            <p className="eyebrow">MY BOOKSHELF / HOME</p>
-            <h1>本棚から、ひろがる毎日。</h1>
-            <p className="intro">お気に入りの漫画も、身近な人との貸し借りも。<br />ここから、あなたの本棚をはじめましょう。</p>
+            <h1>ホーム</h1>
+
             <Link className="home-profile" href="/account/settings/profile"><UserAvatar preset={profile?.avatar_preset} photoUrl={photoUrl} name={profile?.display_name} /><span><strong>{profile?.display_name ?? "ユーザー情報を設定する"}</strong><small>{user.email}</small></span></Link>
           </div>
           {params.error && (
@@ -32,7 +31,7 @@ export default async function Account({
           )}
           <Dashboard />
       </main>
-      <footer>まんがのわ — 本棚から広がる、漫画のつながり。</footer>
+
     </div>
   );
 }

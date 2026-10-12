@@ -18,7 +18,7 @@ function BookConfirmation({ book, series }: { book: BookMetadata; series: Series
   const [coverUrl, setCoverUrl] = useState(book.coverUrl);
   const [photo, setPhoto] = useState<File | null>(null);
   return <section className="registration-confirmation" aria-labelledby="confirm-heading">
-    <div className="registration-step"><span>02</span><h2 id="confirm-heading">内容を確認して、本棚へ</h2></div>
+    <div className="registration-step"><span>02</span><h2 id="confirm-heading">登録内容の確認</h2></div>
     <div className="registration-book-summary"><ComicCover title={book.seriesTitle || book.bookTitle || "登録する漫画"} volume={book.volume} url={coverUrl || null} onPhoto={setPhoto} disabled={pending} /><div><span className="comic-owned">ISBN {book.isbn}</span><h3>{book.bookTitle || "情報を入力してください"}</h3>{book.publisher && <p>{book.publisher} / {book.publishedDate}</p>}<p className="help">書誌情報：{book.source}{photo ? " / 表紙：撮影した写真" : book.coverSource && ` / 表紙：${book.coverSource}`}</p></div></div>
     <p className="help">作品名は各巻をまとめる名前です。巻数や追加先が正しいか確認してください。</p>
     <form className="auth-form" onReset={(event) => event.preventDefault()} onSubmit={(event) => {

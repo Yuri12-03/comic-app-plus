@@ -4,18 +4,18 @@ import { useState } from "react";
 import Link from "next/link";
 
 const sections = [
-  { title: "本棚をひらく", subtitle: "読む楽しみを、身近な人と。", items: [
-    { title: "自分の本棚", description: "持っている漫画を、ひとつの場所に。", icon: "books", color: "green" },
+  { title: "本棚", items: [
+    { title: "自分の本棚", description: "登録済みの漫画を表示", icon: "books", color: "green" },
     { title: "漫画を登録", description: "ISBNを読み取って、本棚に追加。", icon: "plus", color: "gold" },
     { title: "グループの本棚", description: "サークルや研究室の漫画を共有。", icon: "group", color: "blue" },
-    { title: "友達の本棚", description: "友達の一冊から、次の出会いを。", icon: "book", color: "rose" },
+    { title: "友達の本棚", description: "友達の公開作品を表示", icon: "book", color: "rose" },
   ] },
-  { title: "貸し借りを管理", subtitle: "申請から返却まで、忘れずに。", items: [
+  { title: "貸し借りを管理", items: [
     { title: "貸出申請", description: "届いた申請・送った申請を確認。", icon: "mail", color: "gold" },
     { title: "貸し借り一覧", description: "貸している本・借りている本と期限。", icon: "arrows", color: "green" },
   ] },
-  { title: "つながりと設定", subtitle: "あなたの使いやすい本棚に。", items: [
-    { title: "友達管理", description: "友達を追加して、本棚をつなげる。", icon: "person", color: "rose" },
+  { title: "友達・設定", items: [
+    { title: "友達管理", description: "フレンド申請・承認", icon: "person", color: "rose" },
     { title: "設定", description: "アカウントや通知の設定はこちら。", icon: "settings", color: "blue" },
   ] },
 ];
@@ -38,9 +38,9 @@ export default function Dashboard() {
   const [selected, setSelected] = useState<string | null>(null);
   return <>
     <div className="dashboard-development"><span className="development-dot" />漫画の登録・本棚・友達の追加と一覧を使えます。ほかの機能は順次追加予定です。</div>
-    {selected && <div className="dashboard-feedback" role="status"><div><strong>{selected}</strong><p>この機能はこれから追加予定です。もう少しお待ちください。</p></div><button onClick={() => setSelected(null)} aria-label="案内を閉じる">×</button></div>}
+    {selected && <div className="dashboard-feedback" role="status"><div><strong>{selected}</strong><p>この機能はこれから追加予定です。</p></div><button onClick={() => setSelected(null)} aria-label="案内を閉じる">×</button></div>}
     {sections.map((section, index) => <section className="dashboard-section" key={section.title} aria-labelledby={`section-${index}`}>
-      <div className="dashboard-section-heading"><h2 id={`section-${index}`}>{section.title}</h2><p>{section.subtitle}</p></div>
+      <div className="dashboard-section-heading"><h2 id={`section-${index}`}>{section.title}</h2></div>
       <div className={`dashboard-grid ${index === 0 ? "bookshelf-grid" : ""}`}>
         {section.items.map((item) => ["自分の本棚", "漫画を登録", "設定", "友達管理", "友達の本棚"].includes(item.title) ? <Link key={item.title} href={item.title === "友達管理" ? "/account/friends/manage" : item.title === "友達の本棚" ? "/account/friends" : item.title === "設定" ? "/account/settings" : item.title === "漫画を登録" ? "/account/bookshelf/register" : "/account/bookshelf"} className={`feature-button feature-${item.color}`}>
           <span className="feature-icon"><Icon type={item.icon} /></span>

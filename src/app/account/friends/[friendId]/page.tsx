@@ -10,7 +10,6 @@ export default async function FriendBookshelf({ params }: { params: Promise<{ fr
   const books = series.map(summarizeSeries);
   return <>
     <Link className="shelf-back" href="/account/friends">← 友達の一覧へ</Link>
-    <p className="eyebrow">FRIEND&apos;S BOOKSHELF</p>
     {friend && <div className="friend-person"><UserAvatar preset={friend.avatar_preset} photoUrl={friend.photoUrl} name={friend.display_name}/><h1>{friend.display_name}の本棚</h1></div>}
     <p className="intro">{books.length}作品 / {books.reduce((sum, book) => sum + book.copyCount, 0)}冊</p>
     <p className="help">公開されている漫画を表示しています。おすすめの作品が先頭に並びます。</p>

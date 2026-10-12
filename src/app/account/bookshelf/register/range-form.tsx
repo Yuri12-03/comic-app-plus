@@ -22,7 +22,7 @@ export default function RangeForm({ book, series, target, fromTitle = false }: {
   const selectedBooks = result?.books.filter(item => selected[item.volume!] === item.isbn) ?? [];
   const match = series.find(item => item.title.normalize("NFKC").replace(/\s/g, "").toLowerCase() === book.seriesTitle.normalize("NFKC").replace(/\s/g, "").toLowerCase());
   return <section className="registration-confirmation" aria-labelledby="range-heading">
-    <div className="registration-step"><span>{target ? "01" : "02"}</span><h2 id="range-heading">{target ? "購入した巻を追加" : "巻数の範囲で、まとめて追加"}</h2></div>
+    <div className="registration-step"><span>{target ? "01" : "02"}</span><h2 id="range-heading">{target ? "購入した巻を追加" : "巻数を指定して追加"}</h2></div>
     <p>{book.seriesTitle || book.bookTitle}</p>
     <form className="auth-form" onSubmit={async event => {
       event.preventDefault(); setBusy(true); setMessage(""); setResult(null);
