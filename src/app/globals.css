@@ -508,3 +508,13 @@ select:focus-visible, textarea:focus-visible { outline: 3px solid #d38a42; outli
 .registration-book-summary .cover-placeholder > span:first-child { font-size: 20px; }
 .registration-book-summary .cover-placeholder small { font-size: 10px; }
 @media (max-width: 640px) { .comic-detail > .cover-container { width: 180px; margin: 0 auto; } }
+.loan-request-section { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--line); scroll-margin-top: 20px; }
+.loan-copy-options { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 10px; margin: 12px 0 20px; }
+.loan-copy-option { display: flex; gap: 10px; align-items: flex-start; padding: 12px; background: white; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+.loan-copy-option input { margin-top: 4px; width: 18px; height: 18px; flex-shrink: 0; }
+.loan-copy-option span { min-width: 0; }
+.loan-copy-option strong, .loan-copy-option small { display: block; }
+.loan-copy-option small { color: var(--muted); margin-top: 5px; overflow-wrap: anywhere; }
+.loan-copy-option:has(input:checked) { border-color: var(--green); background: #edf2eb; }
+.loan-message { white-space: pre-wrap; overflow-wrap: anywhere; }
+.sent-loan-list { display: grid; gap: 16px; margin: 24px 0; }

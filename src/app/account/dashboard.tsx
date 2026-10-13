@@ -11,7 +11,7 @@ const sections = [
     { title: "友達の本棚", description: "友達の公開作品を表示", icon: "book", color: "rose" },
   ] },
   { title: "貸し借りを管理", items: [
-    { title: "貸出申請", description: "届いた申請・送った申請を確認。", icon: "mail", color: "gold" },
+    { title: "貸出申請", description: "送信した申請を確認", icon: "mail", color: "gold" },
     { title: "貸し借り一覧", description: "貸している本・借りている本と期限。", icon: "arrows", color: "green" },
   ] },
   { title: "友達・設定", items: [
@@ -37,12 +37,12 @@ function Icon({ type }: { type: string }) {
 export default function Dashboard() {
   const [selected, setSelected] = useState<string | null>(null);
   return <>
-    <div className="dashboard-development"><span className="development-dot" />漫画の登録・本棚・友達の追加と一覧を使えます。ほかの機能は順次追加予定です。</div>
+    <div className="dashboard-development"><span className="development-dot" />漫画の登録・本棚・友達の追加・貸出申請を使えます。ほかの機能は順次追加予定です。</div>
     {selected && <div className="dashboard-feedback" role="status"><div><strong>{selected}</strong><p>この機能はこれから追加予定です。</p></div><button onClick={() => setSelected(null)} aria-label="案内を閉じる">×</button></div>}
     {sections.map((section, index) => <section className="dashboard-section" key={section.title} aria-labelledby={`section-${index}`}>
       <div className="dashboard-section-heading"><h2 id={`section-${index}`}>{section.title}</h2></div>
       <div className={`dashboard-grid ${index === 0 ? "bookshelf-grid" : ""}`}>
-        {section.items.map((item) => ["自分の本棚", "漫画を登録", "設定", "友達管理", "友達の本棚"].includes(item.title) ? <Link key={item.title} href={item.title === "友達管理" ? "/account/friends/manage" : item.title === "友達の本棚" ? "/account/friends" : item.title === "設定" ? "/account/settings" : item.title === "漫画を登録" ? "/account/bookshelf/register" : "/account/bookshelf"} className={`feature-button feature-${item.color}`}>
+        {section.items.map((item) => ["自分の本棚", "漫画を登録", "設定", "友達管理", "友達の本棚", "貸出申請"].includes(item.title) ? <Link key={item.title} href={item.title === "貸出申請" ? "/account/requests" : item.title === "友達管理" ? "/account/friends/manage" : item.title === "友達の本棚" ? "/account/friends" : item.title === "設定" ? "/account/settings" : item.title === "漫画を登録" ? "/account/bookshelf/register" : "/account/bookshelf"} className={`feature-button feature-${item.color}`}>
           <span className="feature-icon"><Icon type={item.icon} /></span>
           <span className="feature-copy"><strong>{item.title}</strong><span>{item.description}</span></span>
           <span className="feature-arrow" aria-hidden="true">↗</span>
